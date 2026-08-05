@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -11,6 +11,14 @@ import {
   TiktokIcon,
   YoutubeIcon,
 } from "@hugeicons/core-free-icons";
+import { navColumns } from "./nav-data";
+import {
+  applyTheme,
+  getEffectiveIsLight,
+  getStoredTheme,
+  setThemePreference,
+  type ThemePreference,
+} from "./theme";
 
 const socials = [
   { icon: NewTwitterIcon, label: "X", href: "#" },
@@ -21,75 +29,62 @@ const socials = [
   { icon: InstagramIcon, label: "Instagram", href: "#" },
 ] as const;
 
-const columns = [
-  {
-    title: "Product",
-    links: [
-      { label: "form2mail", href: "#" },
-      { label: "OTP Configuration (Email & SMS)", href: "#" },
-      { label: "Waitlist Management", href: "#" },
-      { label: "Pricing", href: "#" },
-      { label: "API", href: "#" },
-    ],
-  },
-  {
-    title: "Solutions",
-    links: [
-      { label: "Startups", href: "#" },
-      { label: "SaaS Products", href: "#" },
-      { label: "Agencies", href: "#" },
-      { label: "Developers", href: "#" },
-      { label: "Enterprise", href: "#" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "Documentation", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Guides", href: "#" },
-      { label: "Support", href: "#" },
-      { label: "Brand Assets", href: "#" },
-    ],
-  },
-  {
-    title: "Developers",
-    links: [
-      { label: "API Reference", href: "#" },
-      { label: "Changelog", href: "#" },
-      { label: "Status", href: "#" },
-      { label: "SDKs", href: "#" },
-    ],
-  },
-  {
-    title: "Community",
-    links: [
-      { label: "Open Source", href: "#" },
-      { label: "GitHub", href: "#" },
-      { label: "Discord", href: "#" },
-      { label: "X / Twitter", href: "#" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms of Service", href: "#" },
-      { label: "Contact Us", href: "#" },
-    ],
-  },
-] as const;
+const themeOptions: { value: ThemePreference; label: string }[] = [
+  { value: "system", label: "System" },
+  { value: "dark", label: "Dark" },
+  { value: "light", label: "Light" },
+];
 
 export default function Footer() {
-  const [isLight, setIsLight] = useState(
-    () => typeof document !== "undefined" && document.body.classList.contains("light"),
-  );
+  const [theme, setTheme] = useState<ThemePreference>(() => getStoredTheme());
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  function toggleTheme() {
-    document.body.classList.toggle("light");
-    setIsLight((prev) => !prev);
+  const isLight = getEffectiveIsLight(theme);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (theme !== "system") return;
+
+    const media = window.matchMedia("(prefers-color-scheme: light)");
+    function handleChange() {
+      applyTheme("system");
+    }
+
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  function handleThemeSelect(nextTheme: ThemePreference) {
+    setTheme(nextTheme);
+    setThemePreference(nextTheme);
+    setMenuOpen(false);
   }
 
   function handleSubscribe(e: FormEvent<HTMLFormElement>) {
@@ -142,7 +137,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
-            {columns.map((column) => (
+            {navColumns.map((column) => (
               <div key={column.title} className="space-y-3">
                 <h3 className="text-sm font-semibold text-main">{column.title}</h3>
                 <ul className="space-y-2">
@@ -164,14 +159,42 @@ export default function Footer() {
 
         <div className="mt-16 pt-6 border-t border-line flex items-center justify-between gap-4">
           <p className="text-sm text-muted">© Quest Base</p>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
-            className="text-muted transition-colors hover:text-main p-1"
-          >
-            <HugeiconsIcon icon={isLight ? Sun01Icon : Moon01Icon} size={18} />
-          </button>
+          <div ref={menuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label="Choose theme"
+              aria-expanded={menuOpen}
+              aria-haspopup="listbox"
+              className="text-muted transition-colors hover:text-main p-1"
+            >
+              <HugeiconsIcon icon={isLight ? Sun01Icon : Moon01Icon} size={18} />
+            </button>
+
+            {menuOpen && (
+              <div
+                role="listbox"
+                aria-label="Theme options"
+                className="absolute bottom-full right-0 mb-2 min-w-36 rounded-md border border-line bg-secondary py-1 shadow-lg"
+              >
+                {themeOptions.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="option"
+                    aria-selected={theme === value}
+                    onClick={() => handleThemeSelect(value)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-main transition-colors hover:bg-background"
+                  >
+                    <span
+                      className={`size-1.5 rounded-full bg-main ${theme === value ? "opacity-100" : "opacity-0"}`}
+                    />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </footer>
