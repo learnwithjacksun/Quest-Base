@@ -11,6 +11,7 @@
   --main: #444;
   --muted: #999999;
   --primary: #17CF97;
+  --accent: #17CF97;
   --line: #eee;
 }
 
@@ -22,6 +23,7 @@
   --muted: #999999;
   --line: #212121;
   --primary: #006239;
+  --accent: #17CF97;
 }
 
 @theme inline {
@@ -39,6 +41,7 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-primary: var(--primary);
+  --color-accent: var(--accent);
 }
 
 * {
@@ -50,7 +53,7 @@ body {
 }
 
 .main {
-  @apply max-w-272.5 mx-auto w-[90%] min-w-0;
+  @apply max-w-280 mx-auto w-[90%] min-w-0;
 }
 
 .layout {

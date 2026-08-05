@@ -58,3 +58,11 @@ export const navColumns = [
     ],
   },
 ] as const;
+
+export const desktopDropdownTitles = ["Product", "Solutions", "Developers"] as const;
+
+export const desktopNavLinks = [
+  { label: "Pricing", href: "#" },
+  { label: "Docs", href: "#" },
+  { label: "Blog", href: "#" },
+] as const;

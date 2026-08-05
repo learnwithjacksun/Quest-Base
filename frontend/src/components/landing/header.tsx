@@ -4,10 +4,17 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowDown01Icon,
   Cancel01Icon,
-  Github01Icon,
   Menu09Icon,
 } from "@hugeicons/core-free-icons";
-import { navColumns } from "./nav-data";
+import {
+  desktopDropdownTitles,
+  desktopNavLinks,
+  navColumns,
+} from "./nav-data";
+
+const desktopDropdowns = navColumns.filter((column) =>
+  (desktopDropdownTitles as readonly string[]).includes(column.title),
+);
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -32,21 +39,67 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 inset-x-0 z-50 border-b border-line bg-background/80 backdrop-blur-sm">
-        <nav className="max-w-272.5 mx-auto w-[90%] flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="logo" className="size-5" />
-            <p className="text-lg font-semibold">Quest Base</p>
-          </Link>
+        <nav className="max-w-272.5 mx-auto w-[90%] flex items-center justify-between h-16 gap-6">
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.svg" alt="logo" className="size-5" />
+              <p className="text-lg font-semibold text-nowrap">Quest Base</p>
+            </Link>
+
+            <ul className="hidden lg:flex items-center gap-1">
+              {desktopDropdowns.map((column) => (
+                <li key={column.title} className="relative group">
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 px-3 py-2 text-sm text-muted transition-colors hover:text-main"
+                  >
+                    {column.title}
+                    <HugeiconsIcon
+                      icon={ArrowDown01Icon}
+                      size={14}
+                      className="transition-transform group-hover:rotate-180 group-focus-within:rotate-180"
+                    />
+                  </button>
+
+                  <div className="absolute top-full left-0 z-50 pt-2 opacity-0 invisible transition-all group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible">
+                    <ul className="min-w-52 rounded-sm border border-line bg-background py-2 shadow-lg">
+                      {column.links.map((link) => (
+                        <li key={link.label}>
+                          <a
+                            href={link.href}
+                            className="block px-4 py-2 text-sm text-muted transition-colors hover:text-main hover:bg-secondary"
+                          >
+                            {link.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+
+              {desktopNavLinks.map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    className="block px-3 py-2 text-sm text-muted transition-colors hover:text-main"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <div className="flex items-center gap-6">
-            <a
+            {/* <a
               href="http://"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-sm"
             >
               <HugeiconsIcon icon={Github01Icon} size={19} /> <span>12.4k</span>
-            </a>
+            </a> */}
             <button
               type="button"
               className="cursor-pointer lg:hidden"

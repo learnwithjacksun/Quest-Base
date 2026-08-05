@@ -5,7 +5,7 @@ import {
   DiscordIcon,
   Github01Icon,
   InstagramIcon,
-  Moon01Icon,
+  Moon02Icon,
   NewTwitterIcon,
   Sun01Icon,
   TiktokIcon,
@@ -129,7 +129,10 @@ export default function Footer() {
                   placeholder="Your email"
                   className="min-h-9 flex-1 rounded-sm border border-line bg-secondary px-3 text-sm text-main placeholder:text-muted"
                 />
-                <button type="submit" className="btn-primary btn min-h-9 px-3 text-sm">
+                <button
+                  type="submit"
+                  className="btn-primary btn min-h-9 px-3 text-sm"
+                >
                   Subscribe
                 </button>
               </form>
@@ -139,7 +142,9 @@ export default function Footer() {
           <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
             {navColumns.map((column) => (
               <div key={column.title} className="space-y-3">
-                <h3 className="text-sm font-semibold text-main">{column.title}</h3>
+                <h3 className="text-sm font-semibold text-main">
+                  {column.title}
+                </h3>
                 <ul className="space-y-2">
                   {column.links.map((link) => (
                     <li key={link.label}>
@@ -168,7 +173,10 @@ export default function Footer() {
               aria-haspopup="listbox"
               className="text-muted transition-colors hover:text-main p-1"
             >
-              <HugeiconsIcon icon={isLight ? Sun01Icon : Moon01Icon} size={18} />
+              <HugeiconsIcon
+                icon={isLight ? Sun01Icon : Moon02Icon}
+                size={18}
+              />
             </button>
 
             {menuOpen && (
