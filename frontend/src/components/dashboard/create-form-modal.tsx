@@ -141,12 +141,12 @@ export default function CreateFormModal({
                     >
                       {index === 0 ? "Email" : `Email ${index + 1}`}
                     </label>
-                    <div className="flex items-stretch gap-2">
+                    <div className="flex items-center gap-2">
                       <input
                         id={inputId}
                         type="email"
                         placeholder="you@example.com"
-                        className={`flex-1 min-w-0 min-h-10 rounded-sm border bg-secondary px-3 text-sm text-main placeholder:text-muted transition-colors focus:border-accent/50 ${
+                        className={`flex-1 min-w-0 h-10 rounded-sm border bg-secondary px-3 text-sm text-main placeholder:text-muted transition-colors focus:border-accent/50 ${
                           error ? "border-red-500/60" : "border-line"
                         }`}
                         {...register(`emails.${index}.value`)}
@@ -164,7 +164,7 @@ export default function CreateFormModal({
                       {index === fields.length - 1 && fields.length < 2 && (
                         <button
                           type="button"
-                          className="btn bg-secondary border border-line min-h-10 px-3 text-xs text-muted gap-1.5 shrink-0 whitespace-nowrap"
+                          className="btn bg-secondary border border-line h-10 px-3 text-xs text-muted gap-1.5 shrink-0 whitespace-nowrap"
                           onClick={() => append({ value: "" })}
                         >
                           <HugeiconsIcon icon={Add01Icon} size={13} />
