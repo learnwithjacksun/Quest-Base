@@ -16,10 +16,7 @@ export default function Hero() {
           />
         </h1>
         <div className="text-muted lg:hidden space-y-2">
-          <p>
-            We build the important backend stuff for you, so you can focus on
-            your product.
-          </p>
+        
           <p>
             With{" "}
               <span className="font-mono dark:text-white text-main">Quest Base</span>, you can collect submissions from your HTML form to your email,
