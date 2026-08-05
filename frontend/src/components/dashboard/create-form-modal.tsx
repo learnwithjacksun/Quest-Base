@@ -125,43 +125,57 @@ export default function CreateFormModal({
             </div>
 
             <div className="space-y-2">
-              {fields.map((field, index) => (
-                <div key={field.id} className="flex items-start gap-2">
-                  <div className="flex-1 min-w-0">
-                    <FormField
-                      label={index === 0 ? "Email" : `Email ${index + 1}`}
-                      type="email"
-                      placeholder="you@example.com"
-                      error={
-                        errors.emails?.[index]?.value?.message ??
-                        (index === 0 ? errors.emails?.root?.message ?? errors.emails?.message : undefined)
-                      }
-                      {...register(`emails.${index}.value`)}
-                    />
+              {fields.map((field, index) => {
+                const inputId = `emails.${index}.value`;
+                const error =
+                  errors.emails?.[index]?.value?.message ??
+                  (index === 0
+                    ? (errors.emails?.root?.message ?? errors.emails?.message)
+                    : undefined);
+
+                return (
+                  <div key={field.id} className="space-y-1.5">
+                    <label
+                      htmlFor={inputId}
+                      className="block text-xs font-medium text-main"
+                    >
+                      {index === 0 ? "Email" : `Email ${index + 1}`}
+                    </label>
+                    <div className="flex items-stretch gap-2">
+                      <input
+                        id={inputId}
+                        type="email"
+                        placeholder="you@example.com"
+                        className={`flex-1 min-w-0 min-h-10 rounded-sm border bg-secondary px-3 text-sm text-main placeholder:text-muted transition-colors focus:border-accent/50 ${
+                          error ? "border-red-500/60" : "border-line"
+                        }`}
+                        {...register(`emails.${index}.value`)}
+                      />
+                      {fields.length > 1 && (
+                        <button
+                          type="button"
+                          aria-label="Remove email"
+                          className="size-10 shrink-0 rounded-sm border border-line bg-secondary center text-muted hover:text-main transition-colors"
+                          onClick={() => remove(index)}
+                        >
+                          <HugeiconsIcon icon={Delete02Icon} size={15} />
+                        </button>
+                      )}
+                      {index === fields.length - 1 && fields.length < 2 && (
+                        <button
+                          type="button"
+                          className="btn bg-secondary border border-line min-h-10 px-3 text-xs text-muted gap-1.5 shrink-0 whitespace-nowrap"
+                          onClick={() => append({ value: "" })}
+                        >
+                          <HugeiconsIcon icon={Add01Icon} size={13} />
+                          Add email
+                        </button>
+                      )}
+                    </div>
+                    {error && <p className="text-xs text-red-500">{error}</p>}
                   </div>
-                  {fields.length > 1 && (
-                    <button
-                      type="button"
-                      aria-label="Remove email"
-                      className="mt-6 size-10 shrink-0 rounded-sm border border-line bg-secondary center text-muted hover:text-main transition-colors"
-                      onClick={() => remove(index)}
-                    >
-                      <HugeiconsIcon icon={Delete02Icon} size={15} />
-                    </button>
-                  )}
-                  {index === fields.length - 1 && fields.length < 2 && (
-                    <button
-                      type="button"
-                      aria-label="Add email"
-                      className="mt-6 shrink-0 btn bg-secondary border border-line size-10 sm:size-auto sm:min-h-10 sm:px-3 text-xs text-muted gap-1"
-                      onClick={() => append({ value: "" })}
-                    >
-                      <HugeiconsIcon icon={Add01Icon} size={13} />
-                      <span className="hidden sm:inline">Add email</span>
-                    </button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <p className="text-xs text-muted leading-relaxed">
