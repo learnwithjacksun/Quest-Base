@@ -7,6 +7,11 @@ export default function ProjectOtp() {
     <FeaturePage
       title="OTP"
       description={`Configure and send email & SMS one-time passwords for ${project.name}.`}
+      action={
+        <button type="button" className="btn-primary btn min-h-9 px-4 text-sm">
+          Configure OTP
+        </button>
+      }
     >
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard label="Email OTP" value="Off" />
@@ -18,7 +23,7 @@ export default function ProjectOtp() {
         title="OTP not configured"
         description="Enable email or SMS OTP, set expiry, and customize verification templates."
         action={
-          <button type="button" className="btn-primary btn min-h-9 px-4 text-sm">
+          <button type="button" className="btn-primary btn min-h-9 px-4 text-sm mx-auto">
             Configure OTP
           </button>
         }

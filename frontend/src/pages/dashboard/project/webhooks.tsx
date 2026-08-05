@@ -7,12 +7,17 @@ export default function ProjectWebhooks() {
     <FeaturePage
       title="Webhooks"
       description={`Push real-time events from ${project.name} to your app when submissions arrive, OTPs verify, or waitlists update.`}
+      action={
+        <button type="button" className="btn-primary btn min-h-9 px-4 text-sm">
+          Add webhook
+        </button>
+      }
     >
       <EmptyPanel
         title="No webhooks configured"
         description="Add an endpoint URL to receive events like form.submitted, otp.verified, and waitlist.joined."
         action={
-          <button type="button" className="btn-primary btn min-h-9 px-4 text-sm">
+          <button type="button" className="btn-primary btn min-h-9 px-4 text-sm mx-auto">
             Add webhook
           </button>
         }

@@ -1,9 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { Home } from "./pages/landing";
 import { Login, Register, VerifyEmail } from "./pages/auth";
-import {
- Projects
-} from "./pages/dashboard";
+import { Projects } from "./pages/dashboard";
 import { Toaster } from "sonner";
 import { ScrollToTop } from "./components/common";
 import {
@@ -12,7 +10,17 @@ import {
   LandingLayout,
   ProjectLayout,
 } from "./layouts";
-import { ProjectOverview, ProjectForms, ProjectSubmissions, ProjectOtp, ProjectWaitlist, ProjectWebhooks, ProjectApiKeys, ProjectSettings } from "./pages/dashboard/project";
+import {
+  FormDetails,
+  ProjectApiKeys,
+  ProjectForms,
+  ProjectOtp,
+  ProjectOverview,
+  ProjectSettings,
+  ProjectSubmissions,
+  ProjectWaitlist,
+  ProjectWebhooks,
+} from "./pages/dashboard/project";
 
 export default function App() {
   return (
@@ -33,6 +41,7 @@ export default function App() {
           <Route path="projects/:projectId" element={<ProjectLayout />}>
             <Route index element={<ProjectOverview />} />
             <Route path="forms" element={<ProjectForms />} />
+            <Route path="forms/:formId" element={<FormDetails />} />
             <Route path="submissions" element={<ProjectSubmissions />} />
             <Route path="otp" element={<ProjectOtp />} />
             <Route path="waitlist" element={<ProjectWaitlist />} />

@@ -14,14 +14,18 @@ type FeaturePageProps = {
   title: string;
   description: string;
   children?: ReactNode;
+  action?: ReactNode;
 };
 
-export function FeaturePage({ title, description, children }: FeaturePageProps) {
+export function FeaturePage({ title, description, children, action }: FeaturePageProps) {
   return (
     <div className="p-6 lg:p-8 space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-xl lg:text-2xl font-semibold text-main">{title}</h1>
-        <p className="text-sm text-muted max-w-2xl">{description}</p>
+      <div className="flex lg:items-center justify-between flex-col lg:flex-row gap-4">
+        <div className="space-y-1">
+          <h1 className="text-xl lg:text-2xl font-semibold text-main">{title}</h1>
+          <p className="text-sm text-muted max-w-2xl">{description}</p>
+        </div>
+        {action}
       </div>
       {children}
     </div>

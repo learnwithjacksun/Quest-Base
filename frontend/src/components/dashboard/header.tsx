@@ -5,13 +5,10 @@ import {
   ArrowLeft01Icon,
   Cancel01Icon,
   Menu09Icon,
-  Moon02Icon,
   Search01Icon,
-  Sun01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   applyTheme,
-  getEffectiveIsLight,
   getStoredTheme,
   setThemePreference,
   type ThemePreference,
@@ -36,15 +33,14 @@ export default function Header() {
   );
 
   const isProjectView = Boolean(
-    projectId && location.pathname.startsWith(`/dashboard/projects/${projectId}`),
+    projectId &&
+    location.pathname.startsWith(`/dashboard/projects/${projectId}`),
   );
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(() => getStoredTheme());
   const themeMenuRef = useRef<HTMLDivElement>(null);
-
-  const isLight = getEffectiveIsLight(theme);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -132,7 +128,9 @@ export default function Header() {
 
             <Link to="/dashboard" className="shrink-0 flex items-center gap-2">
               <img src="/logo.svg" alt="Quest Base" className="size-5" />
-              <p className="text-lg font-semibold text-nowrap hidden lg:block">Quest Base</p>
+              <p className="text-lg font-semibold text-nowrap hidden lg:block">
+                Quest Base
+              </p>
             </Link>
 
             {isProjectView && project && (
@@ -166,53 +164,12 @@ export default function Header() {
               <HugeiconsIcon icon={Search01Icon} size={18} />
             </button>
 
-            <div ref={themeMenuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setThemeMenuOpen((open) => !open)}
-                aria-label="Choose theme"
-                aria-expanded={themeMenuOpen}
-                aria-haspopup="listbox"
-                className="text-muted transition-colors hover:text-main p-1"
-              >
-                <HugeiconsIcon
-                  icon={isLight ? Sun01Icon : Moon02Icon}
-                  size={18}
-                />
-              </button>
-
-              {themeMenuOpen && (
-                <div
-                  role="listbox"
-                  aria-label="Theme options"
-                  className="absolute top-full right-0 mt-2 min-w-36 rounded-md border border-line bg-background py-1 shadow-lg"
-                >
-                  {themeOptions.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      role="option"
-                      aria-selected={theme === value}
-                      onClick={() => handleThemeSelect(value)}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-main transition-colors hover:bg-secondary"
-                    >
-                      <span
-                        className={`size-1.5 rounded-full bg-main ${theme === value ? "opacity-100" : "opacity-0"}`}
-                      />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
+            <div
               aria-label="Account menu"
-              className="size-8 rounded-full bg-primary border border-accent/40 center text-xs font-semibold text-white"
+              className="size-8 rounded-full bg-primary center text-xs font-semibold text-white"
             >
               {getInitials(demoUser.firstName, demoUser.lastName)}
-            </button>
+            </div>
           </div>
         </div>
       </header>
