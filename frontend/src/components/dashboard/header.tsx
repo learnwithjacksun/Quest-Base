@@ -249,12 +249,12 @@ export default function Header() {
             </button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+          <nav className="flex-1 overflow-y-auto px-4 pt-4 space-y-1">
             {isProjectView ? (
               <>
                 <Link
                   to="/dashboard"
-                  className="flex items-center gap-2 rounded-sm px-3 py-3 text-sm text-muted hover:text-main hover:bg-secondary transition-colors"
+                  className="flex items-center gap-2 rounded-sm px-3 text-sm text-muted hover:text-main hover:bg-secondary transition-colors"
                   onClick={closeMenu}
                 >
                   <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
