@@ -16,10 +16,12 @@ export default function Hero() {
           />
         </h1>
         <div className="text-muted lg:hidden space-y-2">
-        
           <p>
             With{" "}
-              <span className="font-mono dark:text-white text-main">Quest Base</span>, you can collect submissions from your HTML form to your email,
+            <span className="font-mono dark:text-white text-main">
+              Quest Base
+            </span>
+            , you can collect submissions from your HTML form to your email,
             verify emails and spot spam, and manage waitlists through a single
             API, without standing up your own backend.
           </p>
@@ -47,10 +49,13 @@ export default function Hero() {
             your product.
           </p>
           <p>
-            With <span className="font-mono dark:text-white text-main">Quest Base</span>, you
-            can collect submissions from your HTML form to your email, verify
-            emails and spot spam, and manage waitlists through a single API,
-            without standing up your own backend.
+            With{" "}
+            <span className="font-mono dark:text-white text-main">
+              Quest Base
+            </span>
+            , you can collect submissions from your HTML form to your email,
+            verify emails and spot spam, and manage waitlists through a single
+            API, without standing up your own backend.
           </p>
         </div>
       </div>

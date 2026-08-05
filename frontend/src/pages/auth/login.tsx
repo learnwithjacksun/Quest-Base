@@ -1,11 +1,12 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { FormField, GoogleButton } from "@/components/auth";
 import { loginSchema, type LoginValues } from "@/schemas";
 
 export default function Login() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -16,6 +17,7 @@ export default function Login() {
 
   function onSubmit(values: LoginValues) {
     toast.success(`Welcome back, ${values.email}`);
+    navigate("/dashboard");
   }
 
   return (
