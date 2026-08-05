@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single:wght@100..900&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Geist+Pixel&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+.light {
+  --background: #ffffff;
+  --secondary: #f9f9f9;
+  --foreground: #f5f5f5;
+  --main: #444;
+  --muted: #999999;
+  --primary: #17CF97;
+  --line: #eee;
+}
+
+:root {
+  --background: #131413;
+  --foreground: #212121;
+  --main: #fefefe;
+  --secondary: #181A19;
+  --muted: #999999;
+  --line: #212121;
+  --primary: #006239;
+}
+
+@theme inline {
+  --font-sans: "Google Sans", sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "Geist Pixel", monospace;
+  --font-urban: "Urbanist", sans-serif;
+  --font-brico: "Bricolage Grotesque", serif;
+  --font-bitcount: "Bitcount Prop Single", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-main: var(--main);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+}
+
+* {
+  @apply outline-none
+}
+
+body {
+  @apply bg-background text-main font-inter overflow-x-hidden;
+}
+
+.main {
+  @apply max-w-272.5 mx-auto w-[90%] min-w-0;
+}
+
+.layout {
+  @apply max-w-[90%] md:max-w-[700px] mx-auto;
+}
+
+.center {
+  @apply flex items-center justify-center;
+}
+
+button {
+  @apply cursor-pointer rounded-sm text-sm;
+}
+
+.btn {
+  @apply flex items-center justify-center gap-2 disabled:opacity-50 rounded-sm text-sm;
+}
+
+.btn-primary {
+  @apply text-white flex items-center justify-center bg-primary border border-[#17CF97]/60 text-sm;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  @apply hidden;
+}
+
+.hide-scrollbar::-webkit-scrollbar-thumb {
+  @apply hidden;
+}
+
+@keyframes hero-caret-blink {
+
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.hero-caret {
+  animation: hero-caret-blink 1s step-end infinite;
+}
+
+@keyframes trust-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.trust-marquee {
+  animation: trust-marquee 32s linear infinite;
+}
+
+@keyframes hero-send {
+  0%,
+  12% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  45% {
+    transform: translate(10px, -10px) rotate(14deg);
+    opacity: 1;
+  }
+
+  55% {
+    transform: translate(16px, -16px) rotate(18deg);
+    opacity: 0;
+  }
+
+  56% {
+    transform: translate(-4px, 4px) rotate(-6deg);
+    opacity: 0;
+  }
+
+  75%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.hero-send-icon {
+  animation: hero-send 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-caret {
+    animation: none;
+  }
+
+  .trust-marquee {
+    animation: none;
+  }
+
+  .hero-send-icon {
+    animation: none;
+  }
+}
