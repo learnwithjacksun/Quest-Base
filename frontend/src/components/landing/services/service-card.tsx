@@ -23,7 +23,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
       </div>
 
       <div className="relative mt-4 flex-1 min-h-40 flex items-end justify-center px-4 pt-2">
-        <div className="w-full max-w-80 h-40">
+        <div className={`w-full h-40 ${colSpan === 2 ? "max-w-140" : "max-w-80"}`}>
           <Illustration />
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-secondary to-transparent" />

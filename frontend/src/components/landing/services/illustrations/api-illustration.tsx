@@ -1,39 +1,68 @@
 export default function ApiIllustration() {
   return (
     <svg
-      viewBox="0 0 200 180"
+      viewBox="0 0 240 160"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="w-full h-full text-muted"
       aria-hidden="true"
+      preserveAspectRatio="xMidYMax meet"
     >
       <defs>
-        <radialGradient id="api-hub-glow" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#17CF97" stopOpacity="0.3" />
-          <stop offset="1" stopColor="#17CF97" stopOpacity="0" />
-        </radialGradient>
+        <pattern id="api-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="1" fill="currentColor" opacity="0.1" />
+        </pattern>
       </defs>
 
-      {/* Connector lines */}
-      <line x1="100" y1="90" x2="48" y2="48" stroke="currentColor" strokeWidth="1" opacity="0.35" />
-      <line x1="100" y1="90" x2="152" y2="48" stroke="currentColor" strokeWidth="1" opacity="0.35" />
-      <line x1="100" y1="90" x2="100" y2="148" stroke="#17CF97" strokeWidth="1.2" opacity="0.7" />
+      <rect x="0" y="0" width="240" height="160" fill="url(#api-dots)" />
 
-      {/* Endpoint nodes */}
-      <rect x="20" y="28" width="56" height="28" rx="6" stroke="currentColor" strokeWidth="1.1" opacity="0.5" />
-      <text x="48" y="46" textAnchor="middle" fill="currentColor" fontSize="9" fontFamily="system-ui" opacity="0.6">POST</text>
+      {/* Code editor window */}
+      <rect x="20" y="12" width="200" height="136" rx="10" fill="currentColor" opacity="0.05" />
+      <rect x="20.5" y="12.5" width="199" height="135" rx="9.5" stroke="currentColor" strokeOpacity="0.25" />
 
-      <rect x="124" y="28" width="56" height="28" rx="6" stroke="currentColor" strokeWidth="1.1" opacity="0.5" />
-      <text x="152" y="46" textAnchor="middle" fill="currentColor" fontSize="9" fontFamily="system-ui" opacity="0.6">GET</text>
+      {/* Title bar */}
+      <circle cx="36" cy="26" r="3" fill="currentColor" opacity="0.25" />
+      <circle cx="47" cy="26" r="3" fill="currentColor" opacity="0.18" />
+      <circle cx="58" cy="26" r="3" fill="currentColor" opacity="0.12" />
+      <rect x="150" y="20" width="58" height="13" rx="6.5" fill="#17CF97" opacity="0.12" />
+      <text x="179" y="29.5" textAnchor="middle" fill="#17CF97" fontSize="8" fontFamily="ui-monospace, monospace" fontWeight="600">
+        questbase.ts
+      </text>
+      <line x1="20" y1="38" x2="220" y2="38" stroke="currentColor" strokeOpacity="0.18" />
 
-      <rect x="72" y="140" width="56" height="28" rx="6" stroke="#17CF97" strokeWidth="1.2" opacity="0.9" />
-      <text x="100" y="158" textAnchor="middle" fill="#17CF97" fontSize="9" fontFamily="system-ui" fontWeight="600">OTP</text>
+      {/* Code lines */}
+      <g fontFamily="ui-monospace, monospace" fontSize="9.5">
+        <text x="34" y="56" fill="currentColor" opacity="0.4">1</text>
+        <text x="48" y="56" fill="#c084fc" opacity="0.9">const</text>
+        <text x="80" y="56" fill="currentColor" opacity="0.8">qb =</text>
+        <text x="106" y="56" fill="#17CF97">questbase</text>
+        <text x="160" y="56" fill="currentColor" opacity="0.8">(key)</text>
 
-      {/* Central hub */}
-      <circle cx="100" cy="90" r="28" fill="url(#api-hub-glow)" />
-      <circle cx="100" cy="90" r="20" stroke="#17CF97" strokeWidth="1.4" fill="none" opacity="0.9" />
-      <circle cx="100" cy="90" r="8" fill="#17CF97" opacity="0.85" />
-      <text x="100" y="94" textAnchor="middle" fill="#fff" fontSize="7" fontFamily="system-ui" fontWeight="600">API</text>
+        <text x="34" y="74" fill="currentColor" opacity="0.4">2</text>
+
+        <text x="34" y="92" fill="currentColor" opacity="0.4">3</text>
+        <text x="48" y="92" fill="#c084fc" opacity="0.9">await</text>
+        <text x="80" y="92" fill="currentColor" opacity="0.8">qb.</text>
+        <text x="97" y="92" fill="#17CF97">otp</text>
+        <text x="115" y="92" fill="currentColor" opacity="0.8">.send(email)</text>
+
+        <text x="34" y="110" fill="currentColor" opacity="0.4">4</text>
+        <text x="48" y="110" fill="#c084fc" opacity="0.9">await</text>
+        <text x="80" y="110" fill="currentColor" opacity="0.8">qb.</text>
+        <text x="97" y="110" fill="#17CF97">waitlist</text>
+        <text x="142" y="110" fill="currentColor" opacity="0.8">.add(user)</text>
+
+        <text x="34" y="128" fill="currentColor" opacity="0.4">5</text>
+        <text x="48" y="128" fill="#c084fc" opacity="0.9">await</text>
+        <text x="80" y="128" fill="currentColor" opacity="0.8">qb.</text>
+        <text x="97" y="128" fill="#17CF97">forms</text>
+        <text x="126" y="128" fill="currentColor" opacity="0.8">.submit(data)</text>
+      </g>
+
+      {/* Status chip */}
+      <rect x="152" y="132" width="56" height="12" rx="6" fill="#17CF97" opacity="0.14" />
+      <circle cx="161" cy="138" r="2.5" fill="#17CF97" />
+      <text x="168" y="141" fill="#17CF97" fontSize="7.5" fontFamily="ui-monospace, monospace" fontWeight="600">200 OK</text>
     </svg>
   );
 }
