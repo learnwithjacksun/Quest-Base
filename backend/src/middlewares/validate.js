@@ -2,7 +2,8 @@ import { AppError } from "../utils/AppError.js";
 
 export function validate(schema, source = "body") {
   return (req, res, next) => {
-    const result = schema.safeParse(req[source]);
+    const payload = req[source] ?? {};
+    const result = schema.safeParse(payload);
     if (!result.success) {
       const errors = result.error.issues.map((issue) => ({
         path: issue.path.join("."),
