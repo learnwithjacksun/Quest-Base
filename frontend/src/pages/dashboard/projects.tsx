@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -13,17 +14,35 @@ import {
   CreateProjectModal,
   EmptyState,
   ProjectCard,
-  demoUser,
-  useProjectsStore,
 } from "@/components/dashboard";
 import type { CreateProjectValues } from "@/schemas";
+import { createProject, fetchProjects } from "@/api/projects";
+import { getErrorMessage } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
 
 const tabs = ["Projects", "Domains", "Members", "Billing", "Settings"];
 
 export default function Projects() {
   const navigate = useNavigate();
-  const projects = useProjectsStore((state) => state.projects);
-  const addProject = useProjectsStore((state) => state.addProject);
+  const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: ["projects"],
+    queryFn: fetchProjects,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createProject,
+    onSuccess: (project) => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast.success(`"${project.name}" created`);
+      navigate(`/dashboard/projects/${project.id}`);
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Could not create project"));
+    },
+  });
 
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,13 +56,11 @@ export default function Projects() {
   );
 
   function handleCreate(values: CreateProjectValues) {
-    const project = addProject({
+    createMutation.mutate({
       name: values.name,
       description: values.description,
       platform: values.platform,
     });
-    toast.success(`"${project.name}" created`);
-    navigate(`/dashboard/projects/${project.id}`);
   }
 
   return (
@@ -52,7 +69,7 @@ export default function Projects() {
         <div className="max-w-272.5 mx-auto w-[92%] pt-10 pb-2">
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-2xl lg:text-3xl font-semibold text-main">
-              {demoUser.firstName}'s Projects
+              {user ? `${user.firstName}'s Projects` : "Projects"}
             </h1>
 
             <button
@@ -110,7 +127,9 @@ export default function Projects() {
             </button>
           </div>
 
-          {filtered.length > 0 ? (
+          {isLoading ? (
+            <p className="text-sm text-muted">Loading projects…</p>
+          ) : filtered.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {filtered.map((project) => (
                 <ProjectCard key={project.id} project={project} />

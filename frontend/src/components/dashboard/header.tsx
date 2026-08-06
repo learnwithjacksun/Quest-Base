@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useLocation, useParams } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
@@ -13,9 +15,12 @@ import {
   setThemePreference,
   type ThemePreference,
 } from "@/components/landing/theme";
-import { demoUser, getInitials } from "./data";
+import { getInitials } from "./data";
 import { projectNavItems } from "./project-sidebar";
-import { useProjectsStore } from "./projects-store";
+import { fetchProject } from "@/api/projects";
+import { logoutUser } from "@/api/auth";
+import { useAuthStore } from "@/stores/auth-store";
+import { getErrorMessage } from "@/lib/api";
 
 const themeOptions: { value: ThemePreference; label: string }[] = [
   { value: "system", label: "System" },
@@ -25,12 +30,16 @@ const themeOptions: { value: ThemePreference; label: string }[] = [
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { projectId } = useParams();
-  const project = useProjectsStore((state) =>
-    projectId
-      ? state.projects.find((item) => item.id === projectId)
-      : undefined,
-  );
+  const user = useAuthStore((s) => s.user);
+  const clearSession = useAuthStore((s) => s.clearSession);
+
+  const { data: project } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: () => fetchProject(projectId!),
+    enabled: Boolean(projectId),
+  });
 
   const isProjectView = Boolean(
     projectId &&
@@ -39,8 +48,10 @@ export default function Header() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [theme, setTheme] = useState<ThemePreference>(() => getStoredTheme());
   const themeMenuRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -70,17 +81,27 @@ export default function Header() {
   }, [theme]);
 
   useEffect(() => {
-    if (!themeMenuOpen) return;
+    if (!themeMenuOpen && !accountOpen) return;
 
     function handlePointerDown(event: MouseEvent) {
-      if (!themeMenuRef.current?.contains(event.target as Node)) {
+      if (
+        themeMenuRef.current &&
+        !themeMenuRef.current.contains(event.target as Node)
+      ) {
         setThemeMenuOpen(false);
+      }
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(event.target as Node)
+      ) {
+        setAccountOpen(false);
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setThemeMenuOpen(false);
+        setAccountOpen(false);
       }
     }
 
@@ -90,7 +111,7 @@ export default function Header() {
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [themeMenuOpen]);
+  }, [themeMenuOpen, accountOpen]);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -102,9 +123,24 @@ export default function Header() {
     setThemeMenuOpen(false);
   }
 
+  async function handleLogout() {
+    try {
+      await logoutUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Could not log out"));
+    } finally {
+      clearSession();
+      navigate("/login");
+    }
+  }
+
   const projectBase = projectId
     ? `/dashboard/projects/${projectId}`
     : "/dashboard";
+
+  const initials = user
+    ? getInitials(user.firstName, user.lastName)
+    : "?";
 
   return (
     <>
@@ -164,11 +200,32 @@ export default function Header() {
               <HugeiconsIcon icon={Search01Icon} size={18} />
             </button>
 
-            <div
-              aria-label="Account menu"
-              className="size-8 rounded-full bg-primary center text-xs font-semibold text-white"
-            >
-              {getInitials(demoUser.firstName, demoUser.lastName)}
+            <div className="relative" ref={accountRef}>
+              <button
+                type="button"
+                aria-label="Account menu"
+                onClick={() => setAccountOpen((v) => !v)}
+                className="size-8 rounded-full bg-primary center text-xs font-semibold text-white"
+              >
+                {initials}
+              </button>
+              {accountOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-md border border-line bg-background shadow-lg py-1 z-50">
+                  <div className="px-3 py-2 border-b border-line">
+                    <p className="text-sm font-medium text-main truncate">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs text-muted truncate">{user?.email}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full text-left px-3 py-2 text-sm text-main hover:bg-secondary transition-colors"
+                  >
+                    Log out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -276,6 +333,19 @@ export default function Header() {
                   {label}
                 </button>
               ))}
+            </div>
+
+            <div className="pt-2 border-t border-line">
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  handleLogout();
+                }}
+                className="w-full text-left rounded-sm px-3 py-3 text-sm text-main hover:bg-secondary transition-colors"
+              >
+                Log out
+              </button>
             </div>
           </nav>
         </div>

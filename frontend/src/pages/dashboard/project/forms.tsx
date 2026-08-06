@@ -1,36 +1,37 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MailSend01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
-import {
-  CreateFormModal,
-  getFormEndpoint,
-  useFormsStore,
-} from "@/components/dashboard";
+import { CreateFormModal } from "@/components/dashboard";
+import { createForm, fetchForms, getFormEndpoint } from "@/api/forms";
+import { getErrorMessage } from "@/lib/api";
 import { EmptyPanel, FeaturePage, useProject } from "./_shared";
 
 export default function ProjectForms() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { project } = useProject();
-  const forms = useFormsStore((state) => state.forms);
-  const addForm = useFormsStore((state) => state.addForm);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const projectForms = useMemo(
-    () => forms.filter((form) => form.projectId === project.id),
-    [forms, project.id],
-  );
+  const { data: projectForms = [], isLoading } = useQuery({
+    queryKey: ["forms", project.id],
+    queryFn: () => fetchForms(project.id),
+  });
 
-  function handleCreate(values: { name: string; emails: string[] }) {
-    const form = addForm({
-      projectId: project.id,
-      name: values.name,
-      emails: values.emails,
-    });
-    toast.success(`"${form.name}" created`);
-    navigate(`/dashboard/projects/${project.id}/forms/${form.id}`);
-  }
+  const createMutation = useMutation({
+    mutationFn: (values: { name: string; emails: string[] }) =>
+      createForm(project.id, values),
+    onSuccess: (form) => {
+      queryClient.invalidateQueries({ queryKey: ["forms", project.id] });
+      toast.success(`"${form.name}" created`);
+      navigate(`/dashboard/projects/${project.id}/forms/${form.id}`);
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Could not create form"));
+    },
+  });
 
   return (
     <FeaturePage
@@ -47,8 +48,9 @@ export default function ProjectForms() {
         </button>
       }
     >
-
-      {projectForms.length > 0 ? (
+      {isLoading ? (
+        <p className="text-sm text-muted">Loading forms…</p>
+      ) : projectForms.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {projectForms.map((form) => (
             <Link
@@ -95,7 +97,7 @@ export default function ProjectForms() {
       <CreateFormModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onCreate={handleCreate}
+        onCreate={(values) => createMutation.mutate(values)}
       />
     </FeaturePage>
   );
