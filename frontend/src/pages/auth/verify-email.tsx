@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { OtpInput } from "@/components/auth";
 import { otpSchema } from "@/schemas";
+import { resendVerification, verifyEmail } from "@/api/auth";
+import { getErrorMessage } from "@/lib/api";
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -11,8 +13,10 @@ export default function VerifyEmail() {
 
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const result = otpSchema.safeParse({ code });
@@ -21,9 +25,38 @@ export default function VerifyEmail() {
       return;
     }
 
+    if (!email) {
+      setError("Missing email. Please register again.");
+      return;
+    }
+
     setError(null);
-    toast.success("Email verified successfully");
-    navigate("/login");
+    setSubmitting(true);
+    try {
+      await verifyEmail({ email, code: result.data.code });
+      toast.success("Email verified successfully");
+      navigate("/login");
+    } catch (err) {
+      setError(getErrorMessage(err, "Invalid verification code"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleResend() {
+    if (!email) {
+      toast.error("Missing email. Please register again.");
+      return;
+    }
+    setResending(true);
+    try {
+      await resendVerification(email);
+      toast.success("A new code has been sent");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Could not resend code"));
+    } finally {
+      setResending(false);
+    }
   }
 
   function handleChange(value: string) {
@@ -54,10 +87,10 @@ export default function VerifyEmail() {
 
         <button
           type="submit"
-          disabled={code.length !== 6}
+          disabled={code.length !== 6 || submitting}
           className="btn-primary btn w-full min-h-10 text-sm font-medium"
         >
-          Verify email
+          {submitting ? "Verifying…" : "Verify email"}
         </button>
       </form>
 
@@ -65,10 +98,11 @@ export default function VerifyEmail() {
         Didn't receive a code?{" "}
         <button
           type="button"
-          className="text-main underline underline-offset-2"
-          onClick={() => toast.success("A new code has been sent")}
+          disabled={resending}
+          className="text-main underline underline-offset-2 disabled:opacity-50"
+          onClick={handleResend}
         >
-          Resend
+          {resending ? "Sending…" : "Resend"}
         </button>
       </p>
     </div>

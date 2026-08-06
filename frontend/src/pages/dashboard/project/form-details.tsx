@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import {
+  fetchForm,
+  fetchFormSubmissions,
   getFormEndpoint,
-  useFormsStore,
-  useProjectsStore,
-} from "@/components/dashboard";
+  updateForm,
+} from "@/api/forms";
+import { fetchProject } from "@/api/projects";
+import { getErrorMessage } from "@/lib/api";
 
 const tabs = [
   "Integration",
@@ -22,18 +26,43 @@ type Tab = (typeof tabs)[number];
 export default function FormDetails() {
   const { projectId, formId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("Integration");
   const [copied, setCopied] = useState(false);
+  const [emailsText, setEmailsText] = useState("");
+  const [originsText, setOriginsText] = useState("");
 
-  const project = useProjectsStore((state) =>
-    state.projects.find((item) => item.id === projectId),
-  );
-  const form = useFormsStore((state) =>
-    state.forms.find((item) => item.id === formId),
-  );
+  const { data: project } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: () => fetchProject(projectId!),
+    enabled: Boolean(projectId),
+  });
+
+  const {
+    data: form,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["form", formId],
+    queryFn: () => fetchForm(formId!),
+    enabled: Boolean(formId),
+  });
+
+  const { data: submissionsData, isLoading: submissionsLoading } = useQuery({
+    queryKey: ["form-submissions", formId],
+    queryFn: () => fetchFormSubmissions(formId!),
+    enabled: Boolean(formId) && activeTab === "Submissions",
+  });
 
   useEffect(() => {
-    if (!project || !form || form.projectId !== project.id) {
+    if (form) {
+      setEmailsText(form.emails.join(", "));
+      setOriginsText((form.allowedOrigins || []).join(", "));
+    }
+  }, [form]);
+
+  useEffect(() => {
+    if (isError) {
       navigate(
         projectId
           ? `/dashboard/projects/${projectId}/forms`
@@ -41,9 +70,39 @@ export default function FormDetails() {
         { replace: true },
       );
     }
-  }, [project, form, projectId, navigate]);
+  }, [isError, projectId, navigate]);
 
-  if (!project || !form || form.projectId !== project.id) return null;
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      const emails = emailsText
+        .split(",")
+        .map((e) => e.trim())
+        .filter(Boolean);
+      const allowedOrigins = originsText
+        .split(",")
+        .map((o) => o.trim())
+        .filter(Boolean);
+      return updateForm(formId!, { emails, allowedOrigins });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["form", formId] });
+      queryClient.invalidateQueries({ queryKey: ["forms", projectId] });
+      toast.success("Form settings saved");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Could not save settings"));
+    },
+  });
+
+  if (isLoading || !form || !project) {
+    return (
+      <div className="p-6 lg:p-8 text-sm text-muted">Loading form…</div>
+    );
+  }
+
+  if (form.projectId !== project.id) {
+    return null;
+  }
 
   const endpoint = getFormEndpoint(form.id);
 
@@ -57,6 +116,8 @@ export default function FormDetails() {
       toast.error("Could not copy endpoint");
     }
   }
+
+  const submissions = submissionsData?.items ?? [];
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -129,18 +190,59 @@ export default function FormDetails() {
             <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
               name
             </code>{" "}
-            attribute to each input.
+            attribute to each input. For file uploads use{" "}
+            <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+              enctype=&quot;multipart/form-data&quot;
+            </code>{" "}
+            and input{" "}
+            <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+              name=&quot;files&quot;
+            </code>
+            . Include a hidden honeypot field named{" "}
+            <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+              _gotcha
+            </code>{" "}
+            to help block bots.
           </p>
         </div>
       )}
 
       {activeTab === "Submissions" && (
-        <div className="rounded-lg border border-dashed border-line bg-secondary/40 px-6 py-12 text-center space-y-1">
-          <h2 className="text-sm font-medium text-main">No submissions yet</h2>
-          <p className="text-sm text-muted">
-            Submissions to this form will appear here.
-          </p>
-        </div>
+        submissionsLoading ? (
+          <p className="text-sm text-muted">Loading submissions…</p>
+        ) : submissions.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-line bg-secondary/40 px-6 py-12 text-center space-y-1">
+            <h2 className="text-sm font-medium text-main">No submissions yet</h2>
+            <p className="text-sm text-muted">
+              Submissions to this form will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-line bg-secondary divide-y divide-line max-w-3xl">
+            {submissions.map((submission) => (
+              <div key={submission.id} className="p-4 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-mono text-muted">{submission.id}</p>
+                  <span className="text-xs uppercase tracking-wide text-muted">
+                    {submission.status}
+                  </span>
+                </div>
+                <p className="text-sm text-main">
+                  {Object.entries(submission.fields)
+                    .slice(0, 3)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(" · ") || "No fields"}
+                </p>
+                <p className="text-xs text-muted">
+                  {new Date(submission.createdAt).toLocaleString()}
+                  {submission.files?.length
+                    ? ` · ${submission.files.length} file(s)`
+                    : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {activeTab === "Settings" && (
@@ -153,12 +255,39 @@ export default function FormDetails() {
             <p className="text-xs text-muted">Form name</p>
             <p className="text-sm text-main">{form.name}</p>
           </div>
-          <div className="p-5 space-y-1">
-            <p className="text-xs text-muted">Send emails to</p>
-            <p className="text-sm text-main">{form.emails.join(", ")}</p>
-            <p className="text-xs text-muted mt-2">
-              More recipients can be updated later.
-            </p>
+          <div className="p-5 space-y-2">
+            <label className="text-xs text-muted" htmlFor="form-emails">
+              Send emails to (comma-separated)
+            </label>
+            <input
+              id="form-emails"
+              value={emailsText}
+              onChange={(e) => setEmailsText(e.target.value)}
+              className="w-full min-h-10 rounded-sm border border-line bg-background px-3 text-sm text-main"
+            />
+          </div>
+          <div className="p-5 space-y-2">
+            <label className="text-xs text-muted" htmlFor="form-origins">
+              Allowed origins (comma-separated). Leave empty to allow all
+              browser origins.
+            </label>
+            <input
+              id="form-origins"
+              value={originsText}
+              onChange={(e) => setOriginsText(e.target.value)}
+              placeholder="https://example.com, http://localhost:5173"
+              className="w-full min-h-10 rounded-sm border border-line bg-background px-3 text-sm text-main"
+            />
+          </div>
+          <div className="p-5">
+            <button
+              type="button"
+              disabled={saveMutation.isPending}
+              onClick={() => saveMutation.mutate()}
+              className="btn-primary btn min-h-9 px-4 text-sm"
+            >
+              {saveMutation.isPending ? "Saving…" : "Save settings"}
+            </button>
           </div>
         </div>
       )}

@@ -1,8 +1,20 @@
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchForms, fetchProjectSubmissions } from "@/api/forms";
 import { FeaturePage, StatCard, useProject } from "./_shared";
 
 export default function ProjectOverview() {
   const { project } = useProject();
+
+  const { data: forms = [] } = useQuery({
+    queryKey: ["forms", project.id],
+    queryFn: () => fetchForms(project.id),
+  });
+
+  const { data: submissionsData } = useQuery({
+    queryKey: ["project-submissions", project.id],
+    queryFn: () => fetchProjectSubmissions(project.id),
+  });
 
   return (
     <FeaturePage
@@ -10,8 +22,11 @@ export default function ProjectOverview() {
       description={`Monitor forms, OTP traffic, waitlists, and submissions for ${project.name}.`}
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Forms" value="0" />
-        <StatCard label="Submissions" value="0" />
+        <StatCard label="Forms" value={String(forms.length)} />
+        <StatCard
+          label="Submissions"
+          value={String(submissionsData?.pagination.total ?? 0)}
+        />
         <StatCard label="OTP sent" value="0" />
         <StatCard label="Waitlist" value="0" />
       </div>

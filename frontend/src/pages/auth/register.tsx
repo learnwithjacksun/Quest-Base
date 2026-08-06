@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { FormField, GoogleButton } from "@/components/auth";
 import { registerSchema, type RegisterValues } from "@/schemas";
+import { registerUser } from "@/api/auth";
+import { getErrorMessage } from "@/lib/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -15,9 +17,14 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
   });
 
-  function onSubmit(values: RegisterValues) {
-    toast.success("Account created. Check your email for a code.");
-    navigate("/verify-email", { state: { email: values.email } });
+  async function onSubmit(values: RegisterValues) {
+    try {
+      await registerUser(values);
+      toast.success("Account created. Check your email for a code.");
+      navigate("/verify-email", { state: { email: values.email } });
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to create account"));
+    }
   }
 
   return (
@@ -79,7 +86,7 @@ export default function Register() {
             disabled={isSubmitting}
             className="btn-primary btn w-full min-h-10 text-sm font-medium"
           >
-            Sign up
+            {isSubmitting ? "Creating account…" : "Sign up"}
           </button>
         </form>
 

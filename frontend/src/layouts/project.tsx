@@ -1,21 +1,38 @@
 import { useEffect } from "react";
 import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
-import { ProjectSidebar, useProjectsStore } from "@/components/dashboard";
+import { ProjectSidebar } from "@/components/dashboard";
+import { fetchProject } from "@/api/projects";
 
 export default function ProjectLayout() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const project = useProjectsStore((state) =>
-    state.projects.find((item) => item.id === projectId),
-  );
+
+  const {
+    data: project,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: () => fetchProject(projectId!),
+    enabled: Boolean(projectId),
+  });
 
   useEffect(() => {
-    if (!project) {
+    if (isError) {
       navigate("/dashboard", { replace: true });
     }
-  }, [project, navigate]);
+  }, [isError, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-sm text-muted">
+        Loading project…
+      </div>
+    );
+  }
 
   if (!project) return null;
 
@@ -30,7 +47,6 @@ export default function ProjectLayout() {
             <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
             Back to Projects
           </Link>
-     
         </div>
         <ProjectSidebar />
       </aside>

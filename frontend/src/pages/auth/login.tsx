@@ -1,12 +1,20 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { FormField, GoogleButton } from "@/components/auth";
 import { loginSchema, type LoginValues } from "@/schemas";
+import { loginUser } from "@/api/auth";
+import { getErrorMessage } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const setSession = useAuthStore((s) => s.setSession);
+  const from =
+    (location.state as { from?: string } | null)?.from || "/dashboard";
+
   const {
     register,
     handleSubmit,
@@ -15,9 +23,23 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   });
 
-  function onSubmit(values: LoginValues) {
-    toast.success(`Welcome back, ${values.email}`);
-    navigate("/dashboard");
+  async function onSubmit(values: LoginValues) {
+    try {
+      const data = await loginUser(values);
+      setSession(data.accessToken, data.user);
+      toast.success(`Welcome back, ${data.user.firstName}`);
+      navigate(from, { replace: true });
+    } catch (error) {
+      const err = error as {
+        response?: { data?: { code?: string } };
+      };
+      if (err.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+        toast.error("Please verify your email first");
+        navigate("/verify-email", { state: { email: values.email } });
+        return;
+      }
+      toast.error(getErrorMessage(error, "Unable to sign in"));
+    }
   }
 
   return (
@@ -46,21 +68,31 @@ export default function Login() {
             {...register("email")}
           />
 
-          <FormField
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            autoComplete="current-password"
-            error={errors.password?.message}
-            {...register("password")}
-          />
+          <div className="space-y-2">
+            <FormField
+              label="Password"
+              type="password"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              error={errors.password?.message}
+              {...register("password")}
+            />
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-xs text-muted hover:text-main underline underline-offset-2"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
             className="btn-primary btn w-full min-h-10 text-sm font-medium"
           >
-            Sign in
+            {isSubmitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
