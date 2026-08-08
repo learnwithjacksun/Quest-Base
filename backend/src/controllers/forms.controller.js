@@ -49,15 +49,51 @@ export const submitPublicForm = asyncHandler(async (req, res) => {
     req,
   );
 
-  if (result.redirect && !req.headers.accept?.includes("application/json")) {
+  const accept = req.headers.accept || "";
+  const contentType = req.headers["content-type"] || "";
+  const explicitlyWantsJson =
+    accept.includes("application/json") ||
+    contentType.includes("application/json") ||
+    req.headers["x-requested-with"] === "XMLHttpRequest";
+
+  // Classic browser form navigation (urlencoded / multipart, no JSON Accept)
+  const isHtmlFormNavigation =
+    !explicitlyWantsJson &&
+    (contentType.includes("application/x-www-form-urlencoded") ||
+      contentType.includes("multipart/form-data"));
+
+  // XHR / fetch / SDK: JSON only — clients redirect themselves if needed
+  if (!isHtmlFormNavigation) {
+    return ApiResponse.success(res, {
+      message: result.spam
+        ? "Submission received"
+        : "Form submitted successfully",
+      data: {
+        id: result.submission.id,
+        status: result.submission.status,
+        redirect: result.redirect || null,
+      },
+    });
+  }
+
+  // Classic HTML form POST: browser navigated to the API — send them away
+  // Prefer thank-you URL; otherwise bounce back to the referring page
+  if (result.redirect) {
     return res.redirect(303, result.redirect);
   }
 
-  return ApiResponse.success(res, {
-    message: result.spam ? "Submission received" : "Form submitted successfully",
-    data: {
-      id: result.submission.id,
-      status: result.submission.status,
-    },
-  });
+  // Last resort: tiny success page with a back link (no thank-you, no referer)
+  res
+    .status(200)
+    .type("html")
+    .send(`<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Submission received</title>
+<style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem;color:#222}
+a{color:#006239}</style></head>
+<body>
+  <h1>Thanks — your form was submitted.</h1>
+  <p><a href="javascript:history.back()">Go back</a></p>
+</body>
+</html>`);
 });

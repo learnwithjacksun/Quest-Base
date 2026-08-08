@@ -16,6 +16,18 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+// Public form endpoints must accept browser posts from any site.
+// Per-form `allowedOrigins` is enforced in publicForm.service.
+app.use(
+  "/f",
+  cors({
+    origin: true,
+    credentials: false,
+  }),
+);
+
+// Dashboard / authenticated API — restricted origins from env
 app.use(cors(corsOptions));
 app.use(morgan(env.isProd ? "combined" : "dev"));
 app.use(express.json({ limit: "1mb" }));

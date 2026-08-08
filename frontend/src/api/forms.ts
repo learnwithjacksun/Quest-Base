@@ -8,6 +8,7 @@ export type ProjectForm = {
   name: string;
   emails: string[];
   allowedOrigins?: string[];
+  redirectUrl?: string;
   isActive?: boolean;
   createdAt: string;
   updatedAt?: string;
@@ -41,6 +42,7 @@ export async function updateForm(
     name: string;
     emails: string[];
     allowedOrigins: string[];
+    redirectUrl: string;
     isActive: boolean;
   }>,
 ) {

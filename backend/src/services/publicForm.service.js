@@ -64,6 +64,45 @@ export function isHoneypotTriggered(body = {}) {
 }
 
 /**
+ * Sanitize redirect targets — http(s) only, no javascript: etc.
+ */
+export function sanitizeRedirectUrl(raw) {
+  if (!raw || typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return null;
+    }
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * HTML form posts always navigate the browser to the API.
+ * Redirect priority:
+ * 1. Hidden field `_next` or `_redirect` (FormSubmit-style)
+ * 2. Form default `redirectUrl` (thank-you page in settings)
+ * 3. Referer — send them back to the page they submitted from
+ *    (so they never stay on the API domain / JSON response)
+ */
+export function resolveHtmlRedirect(form, body, req) {
+  const fromField = sanitizeRedirectUrl(body._next || body._redirect);
+  if (fromField) return fromField;
+
+  const fromSettings = sanitizeRedirectUrl(form.redirectUrl);
+  if (fromSettings) return fromSettings;
+
+  const referer = sanitizeRedirectUrl(req.headers.referer);
+  if (referer) return referer;
+
+  return null;
+}
+
+/**
  * Auth rule for public submit:
  * - Browser requests with Origin: allowed if origins empty OR origin matches OR valid API key for project
  * - Server-to-server (no Origin): require valid API key for the form's project
@@ -101,7 +140,7 @@ export async function processFormSubmission(publicId, req) {
   const body = req.body || {};
   const honeypot = isHoneypotTriggered(body);
   const fields = extractFields(body);
-  const redirect = body._redirect || body._next || null;
+  const redirect = resolveHtmlRedirect(form, body, req);
 
   let files = [];
   if (req.files?.length) {

@@ -27,5 +27,18 @@ export const updateFormSchema = z.object({
         ),
     )
     .optional(),
+  redirectUrl: z
+    .union([
+      z.literal(""),
+      z
+        .string()
+        .trim()
+        .url("Redirect URL must be a valid URL")
+        .refine(
+          (v) => /^https?:\/\//i.test(v),
+          "Redirect URL must use http or https",
+        ),
+    ])
+    .optional(),
   isActive: z.boolean().optional(),
 });

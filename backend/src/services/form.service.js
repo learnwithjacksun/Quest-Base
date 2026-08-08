@@ -54,6 +54,9 @@ export async function updateForm(formId, ownerId, input) {
   if (input.allowedOrigins !== undefined) {
     form.allowedOrigins = input.allowedOrigins.map((o) => o.trim());
   }
+  if (input.redirectUrl !== undefined) {
+    form.redirectUrl = String(input.redirectUrl || "").trim();
+  }
   if (input.isActive !== undefined) form.isActive = input.isActive;
   await form.save();
   return form.toSafeObject();

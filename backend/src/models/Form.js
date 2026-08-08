@@ -40,6 +40,13 @@ const formSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    /** Default thank-you / redirect URL for HTML form posts (overridable via _next) */
+    redirectUrl: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 2048,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -56,6 +63,7 @@ formSchema.methods.toSafeObject = function toSafeObject() {
     name: this.name,
     emails: this.emails,
     allowedOrigins: this.allowedOrigins,
+    redirectUrl: this.redirectUrl || "",
     isActive: this.isActive,
     createdAt: this.createdAt?.toISOString?.() ?? this.createdAt,
     updatedAt: this.updatedAt?.toISOString?.() ?? this.updatedAt,

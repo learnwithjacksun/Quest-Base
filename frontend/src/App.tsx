@@ -37,7 +37,7 @@ export default function App() {
   return (
     <AuthBootstrap>
       <ScrollToTop />
-      <Toaster richColors theme="dark" />
+      <Toaster richColors theme="dark" position="top-center" />
       <Routes>
         <Route path="/" element={<LandingLayout />}>
           <Route index element={<Home />} />
