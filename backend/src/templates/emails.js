@@ -195,3 +195,29 @@ export function buildFormSubmissionEmail({ formName, fields, files, submittedAt 
   </table>
 </body></html>`;
 }
+
+export function buildProductOtpEmail({ bodyText, code, minutes }) {
+  return `
+<!DOCTYPE html>
+<html><body style="margin:0;padding:0;background:#f3f4f6;font-family:Inter,Segoe UI,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+    <tr><td align="center">
+      <table width="560" style="background:#ffffff;border-radius:12px;padding:36px;border:1px solid #e5e7eb;">
+        <tr><td>
+          <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#6b7280;">Verification code</p>
+          <h1 style="margin:0 0 16px;font-size:26px;line-height:1.3;color:#111827;">Enter this code to continue</h1>
+          <p style="margin:0 0 24px;font-size:16px;color:#4b5563;line-height:1.6;">
+            ${escapeHtml(bodyText || "Use the code below to verify.")}
+          </p>
+          <p style="margin:0 0 24px;font-size:36px;letter-spacing:0.28em;font-weight:700;color:#111827;text-align:center;">
+            ${escapeHtml(code)}
+          </p>
+          <p style="margin:0;font-size:14px;color:#9ca3af;">
+            This code expires in ${escapeHtml(String(minutes || 5))} minutes.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}

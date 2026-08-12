@@ -3,6 +3,7 @@ export { default as EmptyState } from "./empty-state";
 export { default as Header } from "./header";
 export { default as CreateProjectModal } from "./create-project-modal";
 export { default as CreateFormModal } from "./create-form-modal";
+export { default as CreateOtpModal } from "./create-otp-modal";
 export { default as ProjectSidebar } from "./project-sidebar";
 export { getFormEndpoint } from "@/api/forms";
 export type { ProjectForm } from "@/api/forms";

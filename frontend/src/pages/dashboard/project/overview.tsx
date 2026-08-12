@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchForms, fetchProjectSubmissions } from "@/api/forms";
+import { fetchOtps } from "@/api/otp";
 import { FeaturePage, StatCard, useProject } from "./_shared";
 
 export default function ProjectOverview() {
@@ -16,6 +17,11 @@ export default function ProjectOverview() {
     queryFn: () => fetchProjectSubmissions(project.id),
   });
 
+  const { data: otpData } = useQuery({
+    queryKey: ["otps", project.id],
+    queryFn: () => fetchOtps(project.id),
+  });
+
   return (
     <FeaturePage
       title="Overview"
@@ -27,7 +33,10 @@ export default function ProjectOverview() {
           label="Submissions"
           value={String(submissionsData?.pagination.total ?? 0)}
         />
-        <StatCard label="OTP sent" value="0" />
+        <StatCard
+          label="OTP sent"
+          value={String(otpData?.stats.sent24h ?? 0)}
+        />
         <StatCard label="Waitlist" value="0" />
       </div>
 

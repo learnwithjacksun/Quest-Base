@@ -8,8 +8,20 @@ export function generateRandomToken(bytes = 32) {
   return crypto.randomBytes(bytes).toString("hex");
 }
 
-export function generateOtpCode() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+export function generateOtpCode(length = 6) {
+  const digits = Math.min(8, Math.max(4, Number(length) || 6));
+  const min = 10 ** (digits - 1);
+  const max = 10 ** digits;
+  return String(Math.floor(min + Math.random() * (max - min)));
+}
+
+export function timingSafeEqualHash(a, b) {
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
+  if (left.length !== right.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(left, right);
 }
 
 export function generatePublicId(length = 8) {

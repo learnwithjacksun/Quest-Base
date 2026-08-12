@@ -18,6 +18,7 @@ import {
 } from "./layouts";
 import {
   FormDetails,
+  OtpDetails,
   ProjectApiKeys,
   ProjectForms,
   ProjectOtp,
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="forms/:formId" element={<FormDetails />} />
               <Route path="submissions" element={<ProjectSubmissions />} />
               <Route path="otp" element={<ProjectOtp />} />
+              <Route path="otp/:otpId" element={<OtpDetails />} />
               <Route path="waitlist" element={<ProjectWaitlist />} />
               <Route path="webhooks" element={<ProjectWebhooks />} />
               <Route path="api-keys" element={<ProjectApiKeys />} />

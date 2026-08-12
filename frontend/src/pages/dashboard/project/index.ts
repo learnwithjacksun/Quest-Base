@@ -3,6 +3,7 @@ export { default as ProjectForms } from "./forms";
 export { default as FormDetails } from "./form-details";
 export { default as ProjectSubmissions } from "./submissions";
 export { default as ProjectOtp } from "./otp";
+export { default as OtpDetails } from "./otp-details";
 export { default as ProjectWaitlist } from "./waitlist";
 export { default as ProjectWebhooks } from "./webhooks";
 export { default as ProjectApiKeys } from "./api-keys";
