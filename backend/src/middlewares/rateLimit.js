@@ -37,3 +37,37 @@ export const formSubmitRateLimiter = rateLimit({
     message: "Form submission rate limit exceeded",
   },
 });
+
+export const otpSendRateLimiter = rateLimit({
+  windowMs: env.rateLimitWindowMs,
+  max: (req) =>
+    String(req.body?.channel || "").toLowerCase() === "sms"
+      ? env.otpSmsRateLimitMax
+      : env.otpRateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const ip = ipKeyGenerator(req.ip || req.socket?.remoteAddress || "unknown");
+    const channel = String(req.body?.channel || "any").toLowerCase();
+    return `${ip}:${req.params.otpId || "otp"}:${channel}`;
+  },
+  message: {
+    success: false,
+    message: "OTP send rate limit exceeded",
+  },
+});
+
+export const otpVerifyRateLimiter = rateLimit({
+  windowMs: env.rateLimitWindowMs,
+  max: env.otpRateLimitMax * 2,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const ip = ipKeyGenerator(req.ip || req.socket?.remoteAddress || "unknown");
+    return `${ip}:${req.params.otpId || "otp"}:verify`;
+  },
+  message: {
+    success: false,
+    message: "OTP verify rate limit exceeded",
+  },
+});

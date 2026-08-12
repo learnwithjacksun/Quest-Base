@@ -1,6 +1,7 @@
 import type { QuestbaseConfig } from "./config.js";
 import { createFormsApi } from "./forms.js";
-import { createOtpApi, createWaitlistApi } from "./stubs.js";
+import { createOtpApi } from "./otp.js";
+import { createWaitlistApi } from "./stubs.js";
 export type QuestbaseClient = {
     forms: ReturnType<typeof createFormsApi>;
     otp: ReturnType<typeof createOtpApi>;
@@ -12,6 +13,7 @@ export type QuestbaseClient = {
  * @example
  * const qb = questbase({ apiKey: "qb_..." });
  * await qb.forms.submit("formId", { email, message });
+ * await qb.otp.send("otpId", { channel: "email", to: email });
  */
 export declare function questbase(config?: QuestbaseConfig): QuestbaseClient;
 //# sourceMappingURL=client.d.ts.map

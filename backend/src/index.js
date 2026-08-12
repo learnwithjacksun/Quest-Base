@@ -10,6 +10,7 @@ import { globalRateLimiter } from "./middlewares/rateLimit.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.js";
 import v1Routes from "./routes/index.js";
 import publicFormRoutes from "./routes/publicForm.routes.js";
+import publicOtpRoutes from "./routes/publicOtp.routes.js";
 
 const app = express();
 
@@ -17,23 +18,25 @@ app.set("trust proxy", 1);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
+const publicCors = cors({
+  origin: true,
+  credentials: false,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Accept",
+    "X-Requested-With",
+    "X-Api-Key",
+    "Authorization",
+  ],
+});
+
 // Public form endpoints — reflect the caller origin in CORS headers.
 // Per-form `allowedOrigins` is enforced in publicForm.service (not here).
-app.use(
-  "/f",
-  cors({
-    origin: true,
-    credentials: false,
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Accept",
-      "X-Requested-With",
-      "X-Api-Key",
-      "Authorization",
-    ],
-  }),
-);
+app.use("/f", publicCors);
+
+// Public OTP endpoints — same CORS posture; per-config origins enforced in service.
+app.use("/o", publicCors);
 
 // Dashboard / authenticated API only — do NOT apply this globally or /f breaks in prod.
 app.use("/api/v1", cors(corsOptions));
@@ -53,6 +56,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1", v1Routes);
 app.use("/f", publicFormRoutes);
+app.use("/o", publicOtpRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

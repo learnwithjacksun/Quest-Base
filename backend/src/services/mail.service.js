@@ -3,6 +3,7 @@ import {
   buildVerificationEmail,
   buildPasswordResetEmail,
   buildFormSubmissionEmail,
+  buildProductOtpEmail,
 } from "../templates/emails.js";
 
 export async function sendVerificationEmail({ email, firstName, code }) {
@@ -13,6 +14,11 @@ export async function sendVerificationEmail({ email, firstName, code }) {
 export async function sendPasswordResetEmail({ email, firstName, resetUrl }) {
   const html = buildPasswordResetEmail({ firstName, resetUrl });
   return sendMail(email, firstName, "Reset your Quest Base password", html);
+}
+
+export async function sendOtpEmail({ email, subject, bodyText, code, minutes }) {
+  const html = buildProductOtpEmail({ bodyText, code, minutes });
+  return sendMail(email, email, subject || "Your verification code", html);
 }
 
 export async function sendFormSubmissionEmails({ emails, formName, fields, files }) {

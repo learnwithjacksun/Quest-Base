@@ -96,8 +96,8 @@ export function ContactForm() {
 export function getUnifiedSdkSample({ formId }: IntegrationSampleContext) {
   return `import { questbase } from "@questbase/sdk";
 
-// Forms work with just a form ID (no API key required).
-// Pass apiKey when you use OTP / waitlist later.
+// Forms and OTP work from the browser with a public ID (no API key).
+// Pass apiKey for server-to-server calls.
 const qb = questbase({
   // apiKey: "qb_...",
   // baseUrl: "http://localhost:9000", // optional override
@@ -108,9 +108,9 @@ await qb.forms.submit("${formId}", {
   message: "Shipped with one client",
 });
 
-// Coming soon — same client surface:
-// await qb.otp.send(email)
-// await qb.waitlist.add({ email })`;
+// Same client surface for OTP:
+// await qb.otp.send("your-otp-id", { channel: "email", to: "ada@example.com" });
+// await qb.waitlist.add({ email }) // coming soon`;
 }
 
 export function getInstallSample() {

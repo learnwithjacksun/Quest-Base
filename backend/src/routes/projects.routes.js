@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as projectsController from "../controllers/projects.controller.js";
 import * as formsController from "../controllers/forms.controller.js";
+import * as otpController from "../controllers/otp.controller.js";
 import * as apiKeysController from "../controllers/apiKeys.controller.js";
 import * as submissionsController from "../controllers/submissions.controller.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -11,8 +12,8 @@ import {
 } from "../validators/project.validator.js";
 import {
   createFormSchema,
-  updateFormSchema,
 } from "../validators/form.validator.js";
+import { createOtpConfigSchema } from "../validators/otp.validator.js";
 import { createApiKeySchema } from "../validators/apiKey.validator.js";
 
 const router = Router();
@@ -34,6 +35,13 @@ router.post(
   "/:projectId/forms",
   validate(createFormSchema),
   formsController.createForm,
+);
+
+router.get("/:projectId/otps", otpController.listOtpConfigs);
+router.post(
+  "/:projectId/otps",
+  validate(createOtpConfigSchema),
+  otpController.createOtpConfig,
 );
 
 router.get("/:projectId/api-keys", apiKeysController.listApiKeys);

@@ -1,5 +1,5 @@
 export type QuestbaseConfig = {
-    /** Project API key (qb_...). Optional for public form submits; used for OTP/waitlist later. */
+    /** Project API key (qb_...). Optional for public form/OTP calls from allowed origins. */
     apiKey?: string;
     /** API origin, e.g. https://api.questbase.io or http://localhost:9000 */
     baseUrl?: string;
