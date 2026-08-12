@@ -17,11 +17,17 @@ const MAX_FIELD_VALUE_LENGTH = 5000;
 
 function normalizeOrigin(origin) {
   if (!origin) return null;
+  const trimmed = String(origin).trim();
+  if (!trimmed) return null;
+
   try {
-    const url = new URL(origin);
-    return url.origin;
+    const withProtocol = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+    const url = new URL(withProtocol);
+    return url.origin.toLowerCase();
   } catch {
-    return origin.replace(/\/$/, "");
+    return trimmed.replace(/\/+$/, "").toLowerCase();
   }
 }
 
@@ -37,7 +43,10 @@ export function validateFormOrigin(form, requestOrigin) {
     return false;
   }
   const normalized = normalizeOrigin(requestOrigin);
-  return allowed.some((o) => normalizeOrigin(o) === normalized);
+  if (!normalized) {
+    return false;
+  }
+  return allowed.some((entry) => normalizeOrigin(entry) === normalized);
 }
 
 export function extractFields(body = {}) {
