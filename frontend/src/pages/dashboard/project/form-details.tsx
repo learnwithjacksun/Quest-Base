@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  Copy01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 import { CodeBlock } from "@/components/common";
 import SubmissionsTable from "@/components/dashboard/submissions-table";
 import {
@@ -14,6 +19,8 @@ import {
   getInstallSample,
   getReactSample,
   getUnifiedSdkSample,
+  integrationStacks,
+  type IntegrationStackId,
 } from "./form-integration-samples";
 import {
   fetchForm,
@@ -40,6 +47,92 @@ const integrationModes = [
 type Tab = (typeof tabs)[number];
 type IntegrationMode = (typeof integrationModes)[number]["id"];
 
+const tabButtonClass = (active: boolean) =>
+  `rounded-none px-3.5 py-2.5 text-sm text-nowrap transition-colors border-b-2 -mb-px ${
+    active
+      ? "border-accent text-main"
+      : "border-transparent text-muted hover:text-main"
+  }`;
+
+function StackDropdown({
+  value,
+  onChange,
+}: {
+  value: IntegrationStackId;
+  onChange: (id: IntegrationStackId) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selected =
+    integrationStacks.find((s) => s.id === value) ?? integrationStacks[0];
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative inline-flex">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 rounded-sm border border-line bg-secondary px-3 py-2 text-sm text-main"
+      >
+        {selected.label}
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          size={14}
+          className={`text-muted transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute left-0 top-full z-20 mt-1 min-w-full w-max max-w-[min(100vw-3rem,18rem)] rounded-sm border border-line bg-secondary py-1 shadow-lg"
+        >
+          {integrationStacks.map((stack) => (
+            <li key={stack.id} role="option" aria-selected={stack.id === value}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(stack.id);
+                  setOpen(false);
+                }}
+                className={`w-full rounded-none px-3 py-2 text-left text-sm transition-colors ${
+                  stack.id === value
+                    ? "bg-foreground text-main"
+                    : "text-muted hover:bg-foreground/70 hover:text-main"
+                }`}
+              >
+                {stack.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function FormDetails() {
   const { projectId, formId } = useParams();
   const navigate = useNavigate();
@@ -47,6 +140,7 @@ export default function FormDetails() {
   const [activeTab, setActiveTab] = useState<Tab>("Integration");
   const [integrationMode, setIntegrationMode] =
     useState<IntegrationMode>("manual");
+  const [stack, setStack] = useState<IntegrationStackId>("html");
   const [copied, setCopied] = useState(false);
   const [emailsText, setEmailsText] = useState("");
   const [originsText, setOriginsText] = useState("");
@@ -131,6 +225,8 @@ export default function FormDetails() {
 
   const endpoint = getFormEndpoint(form.id);
   const sampleCtx = { endpoint, formId: form.id };
+  const selectedStack =
+    integrationStacks.find((s) => s.id === stack) ?? integrationStacks[0];
 
   async function handleCopy() {
     try {
@@ -166,11 +262,7 @@ export default function FormDetails() {
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`px-3.5 py-2.5 text-sm text-nowrap transition-colors border-b-2 -mb-px ${
-                activeTab === tab
-                  ? "border-accent text-main"
-                  : "border-transparent text-muted hover:text-main"
-              }`}
+              className={tabButtonClass(activeTab === tab)}
             >
               {tab}
             </button>
@@ -186,16 +278,19 @@ export default function FormDetails() {
                 key={mode.id}
                 type="button"
                 onClick={() => setIntegrationMode(mode.id)}
-                className={`px-3.5 py-2.5 text-sm text-nowrap transition-colors border-b-2 -mb-px ${
-                  integrationMode === mode.id
-                    ? "border-accent text-main"
-                    : "border-transparent text-muted hover:text-main"
-                }`}
+                className={tabButtonClass(integrationMode === mode.id)}
               >
                 {mode.label}
               </button>
             ))}
           </nav>
+
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium tracking-wider uppercase text-muted">
+              Stack
+            </p>
+            <StackDropdown value={stack} onChange={setStack} />
+          </div>
 
           {integrationMode === "manual" && (
             <div className="space-y-8">
@@ -238,109 +333,58 @@ export default function FormDetails() {
 
               <section className="space-y-3">
                 <div className="space-y-1">
-                  <h2 className="text-sm font-semibold text-main">HTML form</h2>
-                  <p className="text-sm text-muted">
-                    Point your form{" "}
-                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                      action
-                    </code>{" "}
-                    at the endpoint. Give every input a{" "}
-                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                      name
-                    </code>
-                    . Include a hidden{" "}
-                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                      _gotcha
-                    </code>{" "}
-                    honeypot to help block bots. For a thank-you page, add{" "}
-                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                      _next
-                    </code>{" "}
-                    or set a default redirect in Settings — otherwise we send the
-                    visitor back to the same page they submitted from.
-                  </p>
-                </div>
-                <CodeBlock
-                  title="index.html"
-                  language="markup"
-                  code={getHtmlSample(sampleCtx)}
-                />
-              </section>
-
-              <section className="space-y-3">
-                <div className="space-y-1">
                   <h2 className="text-sm font-semibold text-main">
-                    JavaScript (fetch)
+                    {selectedStack.label}
                   </h2>
-                  <p className="text-sm text-muted">
-                    Submit JSON from the browser or a Node script with the Fetch
-                    API. After success, redirect yourself if you want a thank-you
-                    page — we never force a navigation for XHR clients.
-                  </p>
+                  <p className="text-sm text-muted">{selectedStack.description}</p>
                 </div>
-                <CodeBlock
-                  title="fetch"
-                  language="javascript"
-                  code={getFetchSample(sampleCtx)}
-                />
-              </section>
 
-              <section className="space-y-3">
-                <div className="space-y-1">
-                  <h2 className="text-sm font-semibold text-main">Axios</h2>
-                  <p className="text-sm text-muted">
-                    Same endpoint with Axios — useful if your app already uses
-                    it.
-                  </p>
-                </div>
-                <CodeBlock
-                  title="axios"
-                  language="javascript"
-                  code={getAxiosSample(sampleCtx)}
-                />
-              </section>
+                {stack === "html" && (
+                  <CodeBlock
+                    title="index.html"
+                    language="markup"
+                    code={getHtmlSample(sampleCtx)}
+                  />
+                )}
 
-              <section className="space-y-3">
-                <div className="space-y-1">
-                  <h2 className="text-sm font-semibold text-main">
-                    React (@questbase/sdk)
-                  </h2>
-                  <p className="text-sm text-muted">
-                    Install the SDK, then use{" "}
-                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                      useQuestForm
-                    </code>{" "}
-                    for a Formspark-style hook with a clearer object return
-                    value.
-                  </p>
-                </div>
-                <CodeBlock
-                  title="install"
-                  language="bash"
-                  code={getInstallSample()}
-                />
-                <CodeBlock
-                  title="ContactForm.tsx"
-                  language="tsx"
-                  code={getReactSample(sampleCtx)}
-                />
-              </section>
+                {stack === "fetch" && (
+                  <CodeBlock
+                    title="fetch"
+                    language="javascript"
+                    code={getFetchSample(sampleCtx)}
+                  />
+                )}
 
-              <section className="space-y-3">
-                <div className="space-y-1">
-                  <h2 className="text-sm font-semibold text-main">
-                    Unified SDK
-                  </h2>
-                  <p className="text-sm text-muted">
-                    One client for forms today — OTP and waitlist will share the
-                    same surface later, so your docs stay simple.
-                  </p>
-                </div>
-                <CodeBlock
-                  title="questbase.ts"
-                  language="typescript"
-                  code={getUnifiedSdkSample(sampleCtx)}
-                />
+                {stack === "axios" && (
+                  <CodeBlock
+                    title="axios"
+                    language="javascript"
+                    code={getAxiosSample(sampleCtx)}
+                  />
+                )}
+
+                {stack === "react" && (
+                  <>
+                    <CodeBlock
+                      title="install"
+                      language="bash"
+                      code={getInstallSample()}
+                    />
+                    <CodeBlock
+                      title="ContactForm.tsx"
+                      language="tsx"
+                      code={getReactSample(sampleCtx)}
+                    />
+                  </>
+                )}
+
+                {stack === "sdk" && (
+                  <CodeBlock
+                    title="questbase.ts"
+                    language="typescript"
+                    code={getUnifiedSdkSample(sampleCtx)}
+                  />
+                )}
               </section>
             </div>
           )}
@@ -353,14 +397,13 @@ export default function FormDetails() {
                 </h2>
                 <p className="text-sm text-muted">
                   Paste this into Cursor, ChatGPT, Claude, or another coding
-                  agent. It includes your form endpoint and the rules needed to
-                  wire form2mail into your app.
+                  agent. It is tailored to {selectedStack.label}.
                 </p>
               </div>
               <CodeBlock
                 title="agent-prompt"
                 language="markdown"
-                code={getAgentPrompt(sampleCtx)}
+                code={getAgentPrompt(sampleCtx, stack)}
               />
             </div>
           )}
