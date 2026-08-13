@@ -81,16 +81,19 @@ export default function Projects() {
             </button>
           </div>
 
-          <nav className="mt-8 flex items-center gap-1 overflow-x-auto hide-scrollbar">
+          <nav
+            className="mt-8 flex items-center gap-1 overflow-x-auto hide-scrollbar border-b border-line"
+            role="tablist"
+            aria-label="Account sections"
+          >
             {tabs.map((tab, index) => (
               <button
                 key={tab}
                 type="button"
-                className={`px-3.5 py-2 text-sm rounded-t-md text-nowrap transition-colors ${
-                  index === 0
-                    ? "bg-background text-main border border-line border-b-0"
-                    : "text-muted hover:text-main"
-                }`}
+                role="tab"
+                aria-selected={index === 0}
+                data-active={index === 0 ? "true" : "false"}
+                className="tab-underline"
               >
                 {tab}
               </button>

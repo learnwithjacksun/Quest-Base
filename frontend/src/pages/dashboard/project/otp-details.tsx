@@ -173,17 +173,20 @@ export default function OtpDetails() {
           </p>
         </div>
 
-        <nav className="flex items-center gap-1 overflow-x-auto hide-scrollbar border-b border-line">
+        <nav
+          className="flex items-center gap-1 overflow-x-auto hide-scrollbar border-b border-line"
+          role="tablist"
+          aria-label="OTP sections"
+        >
           {tabs.map((tab) => (
             <button
               key={tab}
               type="button"
+              role="tab"
+              aria-selected={activeTab === tab}
+              data-active={activeTab === tab ? "true" : "false"}
               onClick={() => setActiveTab(tab)}
-              className={`px-3.5 py-2.5 text-sm text-nowrap transition-colors border-b-2 -mb-px ${
-                activeTab === tab
-                  ? "border-accent text-main"
-                  : "border-transparent text-muted hover:text-main"
-              }`}
+              className="tab-underline"
             >
               {tab}
             </button>
