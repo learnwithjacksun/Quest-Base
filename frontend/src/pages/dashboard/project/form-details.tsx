@@ -7,6 +7,7 @@ import { ArrowLeft01Icon, Copy01Icon, Tick02Icon } from "@hugeicons/core-free-ic
 import { CodeBlock } from "@/components/common";
 import SubmissionsTable from "@/components/dashboard/submissions-table";
 import {
+  getAgentPrompt,
   getAxiosSample,
   getFetchSample,
   getHtmlSample,
@@ -31,13 +32,21 @@ const tabs = [
   "Rules",
 ] as const;
 
+const integrationModes = [
+  { id: "manual", label: "Manual" },
+  { id: "agent", label: "With agent" },
+] as const;
+
 type Tab = (typeof tabs)[number];
+type IntegrationMode = (typeof integrationModes)[number]["id"];
 
 export default function FormDetails() {
   const { projectId, formId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("Integration");
+  const [integrationMode, setIntegrationMode] =
+    useState<IntegrationMode>("manual");
   const [copied, setCopied] = useState(false);
   const [emailsText, setEmailsText] = useState("");
   const [originsText, setOriginsText] = useState("");
@@ -170,146 +179,191 @@ export default function FormDetails() {
       </div>
 
       {activeTab === "Integration" && (
-        <div className="space-y-8 max-w-3xl">
-          <div className="rounded-lg border border-line bg-secondary p-5 lg:p-6 space-y-3">
-            <p className="text-[11px] font-medium tracking-wider uppercase text-muted">
-              Form endpoint
-            </p>
-
-            <div className="flex items-stretch gap-2">
-              <input
-                readOnly
-                value={endpoint}
-                className="flex-1 min-h-10 rounded-sm border border-line bg-background px-3 text-sm font-mono text-main"
-              />
+        <div className="space-y-6 max-w-3xl">
+          <nav className="flex items-center gap-1 overflow-x-auto hide-scrollbar border-b border-line">
+            {integrationModes.map((mode) => (
               <button
+                key={mode.id}
                 type="button"
-                onClick={handleCopy}
-                className="btn bg-background border border-line min-h-10 px-4 text-sm text-main gap-1.5 shrink-0"
+                onClick={() => setIntegrationMode(mode.id)}
+                className={`px-3.5 py-2.5 text-sm text-nowrap transition-colors border-b-2 -mb-px ${
+                  integrationMode === mode.id
+                    ? "border-accent text-main"
+                    : "border-transparent text-muted hover:text-main"
+                }`}
               >
-                <HugeiconsIcon
-                  icon={copied ? Tick02Icon : Copy01Icon}
-                  size={15}
-                />
-                {copied ? "Copied" : "Copy"}
+                {mode.label}
               </button>
-            </div>
+            ))}
+          </nav>
 
-            <p className="text-sm text-muted leading-relaxed">
-              Use this URL with HTML forms,{" "}
-              <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                fetch
-              </code>
-              , Axios, or the Quest Base SDK. Set method to{" "}
-              <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                POST
-              </code>
-              .
-            </p>
-          </div>
+          {integrationMode === "manual" && (
+            <div className="space-y-8">
+              <div className="rounded-lg border border-line bg-secondary p-5 lg:p-6 space-y-3">
+                <p className="text-[11px] font-medium tracking-wider uppercase text-muted">
+                  Form endpoint
+                </p>
 
-          <section className="space-y-3">
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-main">HTML form</h2>
-              <p className="text-sm text-muted">
-                Point your form{" "}
-                <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                  action
-                </code>{" "}
-                at the endpoint. Give every input a{" "}
-                <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                  name
-                </code>
-                . Include a hidden{" "}
-                <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                  _gotcha
-                </code>{" "}
-                honeypot to help block bots. For a thank-you page, add{" "}
-                <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                  _next
-                </code>{" "}
-                or set a default redirect in Settings — otherwise we send the
-                visitor back to the same page they submitted from.
-              </p>
-            </div>
-            <CodeBlock
-              title="index.html"
-              language="markup"
-              code={getHtmlSample(sampleCtx)}
-            />
-          </section>
+                <div className="flex items-stretch gap-2">
+                  <input
+                    readOnly
+                    value={endpoint}
+                    className="flex-1 min-h-10 rounded-sm border border-line bg-background px-3 text-sm font-mono text-main"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="btn bg-background border border-line min-h-10 px-4 text-sm text-main gap-1.5 shrink-0"
+                  >
+                    <HugeiconsIcon
+                      icon={copied ? Tick02Icon : Copy01Icon}
+                      size={15}
+                    />
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
 
-          <section className="space-y-3">
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-main">
-                JavaScript (fetch)
-              </h2>
-              <p className="text-sm text-muted">
-                Submit JSON from the browser or a Node script with the Fetch
-                API. After success, redirect yourself if you want a thank-you
-                page — we never force a navigation for XHR clients.
-              </p>
-            </div>
-            <CodeBlock
-              title="fetch"
-              language="javascript"
-              code={getFetchSample(sampleCtx)}
-            />
-          </section>
+                <p className="text-sm text-muted leading-relaxed">
+                  Use this URL with HTML forms,{" "}
+                  <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+                    fetch
+                  </code>
+                  , Axios, or the Quest Base SDK. Set method to{" "}
+                  <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+                    POST
+                  </code>
+                  .
+                </p>
+              </div>
 
-          <section className="space-y-3">
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-main">Axios</h2>
-              <p className="text-sm text-muted">
-                Same endpoint with Axios — useful if your app already uses it.
-              </p>
-            </div>
-            <CodeBlock
-              title="axios"
-              language="javascript"
-              code={getAxiosSample(sampleCtx)}
-            />
-          </section>
+              <section className="space-y-3">
+                <div className="space-y-1">
+                  <h2 className="text-sm font-semibold text-main">HTML form</h2>
+                  <p className="text-sm text-muted">
+                    Point your form{" "}
+                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+                      action
+                    </code>{" "}
+                    at the endpoint. Give every input a{" "}
+                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+                      name
+                    </code>
+                    . Include a hidden{" "}
+                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+                      _gotcha
+                    </code>{" "}
+                    honeypot to help block bots. For a thank-you page, add{" "}
+                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+                      _next
+                    </code>{" "}
+                    or set a default redirect in Settings — otherwise we send the
+                    visitor back to the same page they submitted from.
+                  </p>
+                </div>
+                <CodeBlock
+                  title="index.html"
+                  language="markup"
+                  code={getHtmlSample(sampleCtx)}
+                />
+              </section>
 
-          <section className="space-y-3">
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-main">
-                React (@questbase/sdk)
-              </h2>
-              <p className="text-sm text-muted">
-                Install the SDK, then use{" "}
-                <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
-                  useQuestForm
-                </code>{" "}
-                for a Formspark-style hook with a clearer object return value.
-              </p>
-            </div>
-            <CodeBlock
-              title="install"
-              language="bash"
-              code={getInstallSample()}
-            />
-            <CodeBlock
-              title="ContactForm.tsx"
-              language="tsx"
-              code={getReactSample(sampleCtx)}
-            />
-          </section>
+              <section className="space-y-3">
+                <div className="space-y-1">
+                  <h2 className="text-sm font-semibold text-main">
+                    JavaScript (fetch)
+                  </h2>
+                  <p className="text-sm text-muted">
+                    Submit JSON from the browser or a Node script with the Fetch
+                    API. After success, redirect yourself if you want a thank-you
+                    page — we never force a navigation for XHR clients.
+                  </p>
+                </div>
+                <CodeBlock
+                  title="fetch"
+                  language="javascript"
+                  code={getFetchSample(sampleCtx)}
+                />
+              </section>
 
-          <section className="space-y-3">
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-main">Unified SDK</h2>
-              <p className="text-sm text-muted">
-                One client for forms today — OTP and waitlist will share the
-                same surface later, so your docs stay simple.
-              </p>
+              <section className="space-y-3">
+                <div className="space-y-1">
+                  <h2 className="text-sm font-semibold text-main">Axios</h2>
+                  <p className="text-sm text-muted">
+                    Same endpoint with Axios — useful if your app already uses
+                    it.
+                  </p>
+                </div>
+                <CodeBlock
+                  title="axios"
+                  language="javascript"
+                  code={getAxiosSample(sampleCtx)}
+                />
+              </section>
+
+              <section className="space-y-3">
+                <div className="space-y-1">
+                  <h2 className="text-sm font-semibold text-main">
+                    React (@questbase/sdk)
+                  </h2>
+                  <p className="text-sm text-muted">
+                    Install the SDK, then use{" "}
+                    <code className="rounded-sm bg-foreground px-1.5 py-0.5 font-mono text-[12px] text-main">
+                      useQuestForm
+                    </code>{" "}
+                    for a Formspark-style hook with a clearer object return
+                    value.
+                  </p>
+                </div>
+                <CodeBlock
+                  title="install"
+                  language="bash"
+                  code={getInstallSample()}
+                />
+                <CodeBlock
+                  title="ContactForm.tsx"
+                  language="tsx"
+                  code={getReactSample(sampleCtx)}
+                />
+              </section>
+
+              <section className="space-y-3">
+                <div className="space-y-1">
+                  <h2 className="text-sm font-semibold text-main">
+                    Unified SDK
+                  </h2>
+                  <p className="text-sm text-muted">
+                    One client for forms today — OTP and waitlist will share the
+                    same surface later, so your docs stay simple.
+                  </p>
+                </div>
+                <CodeBlock
+                  title="questbase.ts"
+                  language="typescript"
+                  code={getUnifiedSdkSample(sampleCtx)}
+                />
+              </section>
             </div>
-            <CodeBlock
-              title="questbase.ts"
-              language="typescript"
-              code={getUnifiedSdkSample(sampleCtx)}
-            />
-          </section>
+          )}
+
+          {integrationMode === "agent" && (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <h2 className="text-sm font-semibold text-main">
+                  Agent prompt
+                </h2>
+                <p className="text-sm text-muted">
+                  Paste this into Cursor, ChatGPT, Claude, or another coding
+                  agent. It includes your form endpoint and the rules needed to
+                  wire form2mail into your app.
+                </p>
+              </div>
+              <CodeBlock
+                title="agent-prompt"
+                language="markdown"
+                code={getAgentPrompt(sampleCtx)}
+              />
+            </div>
+          )}
         </div>
       )}
 
