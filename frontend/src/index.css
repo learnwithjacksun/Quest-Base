@@ -92,6 +92,32 @@ button {
   @apply cursor-pointer rounded-sm text-sm;
 }
 
+/* Underline tabs: override global button radius/background */
+button.tab-underline {
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 0.625rem 0.875rem;
+  white-space: nowrap;
+  color: var(--muted);
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+button.tab-underline[aria-selected="true"],
+button.tab-underline[data-active="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--main);
+}
+
+button.tab-underline:hover {
+  color: var(--main);
+}
+
 .btn {
   @apply flex items-center justify-center gap-2 disabled:opacity-50 rounded-sm text-sm;
 }

@@ -47,13 +47,6 @@ const integrationModes = [
 type Tab = (typeof tabs)[number];
 type IntegrationMode = (typeof integrationModes)[number]["id"];
 
-const tabButtonClass = (active: boolean) =>
-  `rounded-none px-3.5 py-2.5 text-sm text-nowrap transition-colors border-b-2 -mb-px ${
-    active
-      ? "border-accent text-main"
-      : "border-transparent text-muted hover:text-main"
-  }`;
-
 function StackDropdown({
   value,
   onChange,
@@ -256,13 +249,20 @@ export default function FormDetails() {
           {form.name}
         </h1>
 
-        <nav className="flex items-center gap-1 overflow-x-auto hide-scrollbar border-b border-line">
+        <nav
+          className="flex items-center gap-1 overflow-x-auto hide-scrollbar border-b border-line"
+          role="tablist"
+          aria-label="Form sections"
+        >
           {tabs.map((tab) => (
             <button
               key={tab}
               type="button"
+              role="tab"
+              aria-selected={activeTab === tab}
+              data-active={activeTab === tab ? "true" : "false"}
               onClick={() => setActiveTab(tab)}
-              className={tabButtonClass(activeTab === tab)}
+              className="tab-underline"
             >
               {tab}
             </button>
@@ -272,18 +272,31 @@ export default function FormDetails() {
 
       {activeTab === "Integration" && (
         <div className="space-y-6 max-w-3xl">
-          <nav className="flex items-center gap-1 overflow-x-auto hide-scrollbar border-b border-line">
-            {integrationModes.map((mode) => (
-              <button
-                key={mode.id}
-                type="button"
-                onClick={() => setIntegrationMode(mode.id)}
-                className={tabButtonClass(integrationMode === mode.id)}
-              >
-                {mode.label}
-              </button>
-            ))}
-          </nav>
+          <div
+            role="tablist"
+            aria-label="Integration method"
+            className="inline-flex w-full sm:w-auto rounded-sm border border-line bg-secondary p-1"
+          >
+            {integrationModes.map((mode) => {
+              const active = integrationMode === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setIntegrationMode(mode.id)}
+                  className={`flex-1 sm:flex-none min-h-9 px-4 text-sm transition-colors ${
+                    active
+                      ? "rounded-sm bg-background text-main shadow-sm"
+                      : "rounded-sm bg-transparent text-muted hover:text-main"
+                  }`}
+                >
+                  {mode.label}
+                </button>
+              );
+            })}
+          </div>
 
           <div className="space-y-2">
             <p className="text-[11px] font-medium tracking-wider uppercase text-muted">
