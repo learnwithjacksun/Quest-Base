@@ -92,6 +92,23 @@ button {
   @apply cursor-pointer rounded-sm text-sm;
 }
 
+/* Underline tabs: override global button radius/background */
+button.tab-underline {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  @apply cursor-pointer px-3.5 py-2.5 text-sm text-nowrap text-muted transition-colors border-0 border-b-2 border-transparent -mb-px;
+}
+
+button.tab-underline[aria-selected="true"],
+button.tab-underline[data-active="true"] {
+  @apply border-accent text-main;
+}
+
+button.tab-underline:hover {
+  @apply text-main;
+}
+
 .btn {
   @apply flex items-center justify-center gap-2 disabled:opacity-50 rounded-sm text-sm;
 }
