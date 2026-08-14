@@ -1,0 +1,23 @@
+{
+  "$schema": "https://orzn.io/schema/orizon.json",
+  "projectId": "proj_questbase_server",
+  "name": "questbase-server",
+  "framework": "node",
+  "servingMode": "server",
+  "productionBranch": "main",
+  "rootDirectory": "backend",
+  "url": "https://questbase-server.orzn.app",
+  "orizon": {
+    "dashboard": "https://dashboard.orizon.ng/projects/proj_questbase_server",
+    "api": "https://api.orizon.ng/api/v1",
+    "openapi": "https://api.orizon.ng/api/v1/openapi.json",
+    "mcp": {
+      "command": "orizon",
+      "args": [
+        "mcp"
+      ]
+    },
+    "docs": "https://orzn.io/docs",
+    "llms": "https://orzn.io/llms.txt"
+  }
+}
