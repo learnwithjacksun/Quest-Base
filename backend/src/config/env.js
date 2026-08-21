@@ -12,10 +12,51 @@ function optional(name, fallback = "") {
   return process.env[name] ?? fallback;
 }
 
+function normalizeOrigin(value) {
+  if (!value) return "";
+  const trimmed = String(value).trim();
+  if (!trimmed) return "";
+  try {
+    const withProtocol = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+    return new URL(withProtocol).origin;
+  } catch {
+    return trimmed.replace(/\/+$/, "");
+  }
+}
+
+function parseOriginList(raw) {
+  return String(raw || "")
+    .split(",")
+    .map((o) => normalizeOrigin(o))
+    .filter(Boolean);
+}
+
+const nodeEnv = optional("NODE_ENV", "development");
+const isProd = nodeEnv === "production";
+const clientUrl = normalizeOrigin(optional("CLIENT_URL", "http://localhost:3000")) ||
+  "http://localhost:3000";
+
+const corsOrigins = Array.from(
+  new Set([
+    ...parseOriginList(optional("CORS_ORIGINS", "http://localhost:3000")),
+    // Setting CLIENT_URL alone must be enough for the dashboard origin.
+    clientUrl,
+  ]),
+);
+
+// Cross-site cookies (dashboard on questbase.orzn.app → API on questbase-server.orzn.app)
+// require SameSite=None; Secure. Infer from HTTPS client URL if NODE_ENV was forgotten.
+const cookieSecure =
+  optional("COOKIE_SECURE", "false") === "true" ||
+  isProd ||
+  clientUrl.startsWith("https://");
+
 export const env = {
   port: Number(optional("PORT", "9000")),
-  nodeEnv: optional("NODE_ENV", "development"),
-  isProd: optional("NODE_ENV", "development") === "production",
+  nodeEnv,
+  isProd,
   mongodbUri: required("MONGODB_URI", "mongodb://127.0.0.1:27017/questbase"),
   jwtAccessSecret: required(
     "JWT_ACCESS_SECRET",
@@ -27,12 +68,9 @@ export const env = {
   ),
   jwtAccessExpiresIn: optional("JWT_ACCESS_EXPIRES_IN", "15m"),
   jwtRefreshExpiresIn: optional("JWT_REFRESH_EXPIRES_IN", "7d"),
-  clientUrl: optional("CLIENT_URL", "http://localhost:3000"),
-  corsOrigins: optional("CORS_ORIGINS", "http://localhost:3000")
-    .split(",")
-    .map((o) => o.trim())
-    .filter(Boolean),
-  cookieSecure: optional("COOKIE_SECURE", "false") === "true",
+  clientUrl,
+  corsOrigins,
+  cookieSecure,
   brevoApiKey: optional("BREVO_API_KEY"),
   mailFromEmail: optional("MAIL_FROM_EMAIL", "hello@questbase.com"),
   mailFromName: optional("MAIL_FROM_NAME", "Quest Base"),

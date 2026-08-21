@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -14,6 +15,7 @@ import publicOtpRoutes from "./routes/publicOtp.routes.js";
 
 const app = express();
 
+// Orizon (and most PaaS proxies) terminate TLS upstream.
 app.set("trust proxy", 1);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
@@ -63,8 +65,10 @@ app.use(errorHandler);
 
 async function start() {
   await connectDB();
-  app.listen(env.port, () => {
-    console.log(`Quest Base API running on port ${env.port}`);
+  // Orizon proxies to PORT and requires binding on 0.0.0.0 (not localhost).
+  // Listening on the wrong host/port surfaces as Cloudflare 502 on *.orzn.app.
+  app.listen(env.port, "0.0.0.0", () => {
+    console.log(`Quest Base API listening on 0.0.0.0:${env.port}`);
   });
 }
 
