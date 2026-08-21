@@ -34,23 +34,27 @@ export async function issueRefreshToken(user, meta = {}) {
   return { token, expiresAt };
 }
 
+function refreshCookieOptions() {
+  // Cross-origin HTTPS dashboards need SameSite=None; Secure or the browser
+  // drops the refresh cookie and every subsequent API call looks "broken".
+  const crossSite = env.cookieSecure;
+  return {
+    httpOnly: true,
+    secure: crossSite,
+    sameSite: crossSite ? "none" : "lax",
+    path: "/api/v1/auth",
+  };
+}
+
 export function setRefreshCookie(res, token) {
   res.cookie(env.refreshCookieName, token, {
-    httpOnly: true,
-    secure: env.cookieSecure || env.isProd,
-    sameSite: env.isProd ? "none" : "lax",
+    ...refreshCookieOptions(),
     maxAge: parseDurationToMs(env.jwtRefreshExpiresIn),
-    path: "/api/v1/auth",
   });
 }
 
 export function clearRefreshCookie(res) {
-  res.clearCookie(env.refreshCookieName, {
-    httpOnly: true,
-    secure: env.cookieSecure || env.isProd,
-    sameSite: env.isProd ? "none" : "lax",
-    path: "/api/v1/auth",
-  });
+  res.clearCookie(env.refreshCookieName, refreshCookieOptions());
 }
 
 export async function rotateRefreshToken(rawToken, meta = {}) {
