@@ -1,10 +1,21 @@
 import { sendMail } from "../config/brevo.js";
+import { env } from "../config/env.js";
 import {
   buildVerificationEmail,
   buildPasswordResetEmail,
   buildFormSubmissionEmail,
   buildProductOtpEmail,
 } from "../templates/emails.js";
+
+function brandLogoUrl() {
+  const raw = (env.clientUrl || "").replace(/\/$/, "");
+  // Prefer production asset when CLIENT_URL is local so Form2Mail previews still brand correctly.
+  const base =
+    !raw || /localhost|127\.0\.0\.1/.test(raw)
+      ? "https://questbase.orzn.app"
+      : raw;
+  return `${base}/logo.png`;
+}
 
 export async function sendVerificationEmail({ email, firstName, code }) {
   const html = buildVerificationEmail({ firstName, code });
@@ -31,6 +42,7 @@ export async function sendFormSubmissionEmails({ emails, formName, fields, files
     fields,
     files,
     submittedAt,
+    logoUrl: brandLogoUrl(),
   });
   const subject = `New submission · ${formName}`;
 

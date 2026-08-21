@@ -1,17 +1,56 @@
 import { escapeHtml, humanizeFieldKey } from "../utils/helpers.js";
 
+const EMAIL_FONT =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+
+function formatFieldValue(value) {
+  const raw = Array.isArray(value) ? value.join(", ") : String(value ?? "");
+  const safe = escapeHtml(raw);
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw.trim())) {
+    return `<a href="mailto:${safe}" style="color:#111111;text-decoration:underline;">${safe}</a>`;
+  }
+  if (/^https?:\/\//i.test(raw.trim())) {
+    return `<a href="${safe}" target="_blank" rel="noopener noreferrer" style="color:#111111;text-decoration:underline;">${safe}</a>`;
+  }
+  return safe.replace(/\n/g, "<br />");
+}
+
+function brandHeader({ logoUrl, subtitle }) {
+  const mark = logoUrl
+    ? `<img src="${escapeHtml(logoUrl)}" width="32" height="32" alt=""
+          style="display:block;width:32px;height:32px;border:0;outline:none;border-radius:6px;" />`
+    : `<span style="display:block;width:32px;height:32px;border-radius:6px;background:#17CF97;"></span>`;
+
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 40px;border-collapse:collapse;">
+      <tr>
+        <td valign="middle" width="32" style="width:32px;padding:0;line-height:0;">${mark}</td>
+        <td valign="middle" style="padding:0 0 0 14px;">
+          <p style="margin:0;font-family:${EMAIL_FONT};font-size:18px;line-height:1.2;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;">
+            Questbase
+          </p>
+          ${
+            subtitle
+              ? `<p style="margin:5px 0 0;font-family:${EMAIL_FONT};font-size:13px;line-height:1.3;color:#737373;">${escapeHtml(subtitle)}</p>`
+              : ""
+          }
+        </td>
+      </tr>
+    </table>`;
+}
+
 function imageBlock(file) {
   const thumb = file.url.includes("/upload/")
-    ? file.url.replace("/upload/", "/upload/c_fill,w_480,h_320,q_auto,f_auto/")
+    ? file.url.replace("/upload/", "/upload/c_fill,w_640,h_400,q_auto,f_auto/")
     : file.url;
   return `
     <tr>
-      <td style="padding:0 0 16px;">
+      <td style="padding:0 0 20px;">
         <a href="${escapeHtml(file.url)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:block;">
           <img src="${escapeHtml(thumb)}" alt="${escapeHtml(file.originalName || "Image")}"
-            width="520"
-            style="display:block;width:100%;max-width:520px;height:auto;border-radius:10px;border:1px solid #e5e7eb;" />
-          <p style="margin:10px 0 0;font-size:15px;line-height:1.5;color:#374151;">
+            width="600"
+            style="display:block;width:100%;max-width:600px;height:auto;border-radius:8px;border:1px solid #ececec;" />
+          <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:#525252;">
             ${escapeHtml(file.originalName || "Image")}
             ${file.size ? ` · ${Math.round(file.size / 1024)} KB` : ""}
           </p>
@@ -119,19 +158,32 @@ export function buildPasswordResetEmail({ firstName, resetUrl }) {
 </body></html>`;
 }
 
-export function buildFormSubmissionEmail({ formName, fields, files, submittedAt }) {
-  const fieldRows = Object.entries(fields || {})
-    .map(
-      ([key, value]) => `
+export function buildFormSubmissionEmail({
+  formName,
+  fields,
+  files,
+  submittedAt,
+  logoUrl,
+}) {
+  const entries = Object.entries(fields || {});
+  const fieldRows = entries
+    .map(([key, value], index) => {
+      const isLast = index === entries.length - 1;
+      const padTop = index === 0 ? "0" : "24px";
+      const padBottom = isLast ? "0" : "24px";
+      const border = isLast ? "" : "border-bottom:1px solid #ececec;";
+      return `
       <tr>
-        <td style="padding:16px 18px;border-bottom:1px solid #f3f4f6;font-size:15px;line-height:1.5;color:#6b7280;width:34%;vertical-align:top;">
-          ${escapeHtml(humanizeFieldKey(key))}
+        <td style="padding:${padTop} 0 ${padBottom};${border}">
+          <p style="margin:0 0 6px;font-family:${EMAIL_FONT};font-size:13px;line-height:1.4;font-weight:500;color:#737373;text-transform:none;">
+            ${escapeHtml(humanizeFieldKey(key))}
+          </p>
+          <p style="margin:0;font-family:${EMAIL_FONT};font-size:16px;line-height:1.55;color:#0a0a0a;word-break:break-word;">
+            ${formatFieldValue(value)}
+          </p>
         </td>
-        <td style="padding:16px 18px;border-bottom:1px solid #f3f4f6;font-size:16px;line-height:1.6;color:#111827;word-break:break-word;">
-          ${escapeHtml(Array.isArray(value) ? value.join(", ") : String(value ?? ""))}
-        </td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join("");
 
   const images = (files || []).filter((f) => f.mimeType?.startsWith("image/"));
@@ -143,57 +195,75 @@ export function buildFormSubmissionEmail({ formName, fields, files, submittedAt 
   const mediaSections = [];
   if (images.length) {
     mediaSections.push(`
-      <h2 style="margin:32px 0 14px;font-size:18px;line-height:1.4;color:#111827;">Images</h2>
-      <table width="100%" cellpadding="0" cellspacing="0">
+      <h2 style="margin:40px 0 16px;font-size:15px;line-height:1.4;font-weight:600;color:#0a0a0a;">Images</h2>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         ${images.map(imageBlock).join("")}
       </table>`);
   }
   if (pdfs.length) {
     mediaSections.push(`
-      <h2 style="margin:32px 0 14px;font-size:18px;line-height:1.4;color:#111827;">Documents</h2>
-      <table width="100%" cellpadding="0" cellspacing="0">
+      <h2 style="margin:40px 0 16px;font-size:15px;line-height:1.4;font-weight:600;color:#0a0a0a;">Documents</h2>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         ${pdfs.map(pdfBlock).join("")}
       </table>`);
   }
   if (others.length) {
     mediaSections.push(`
-      <h2 style="margin:32px 0 14px;font-size:18px;line-height:1.4;color:#111827;">Attachments</h2>
-      <table width="100%" cellpadding="0" cellspacing="0">
+      <h2 style="margin:40px 0 16px;font-size:15px;line-height:1.4;font-weight:600;color:#0a0a0a;">Attachments</h2>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         ${others.map(otherFileBlock).join("")}
       </table>`);
   }
 
   return `
 <!DOCTYPE html>
-<html><body style="margin:0;padding:0;background:#f3f4f6;font-family:Inter,Segoe UI,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:36px 16px;">
-    <tr><td align="center">
-      <table width="640" style="background:#ffffff;border-radius:14px;padding:40px;border:1px solid #e5e7eb;">
-        <tr><td>
-          <p style="margin:0 0 10px;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#6b7280;">
-            Quest Base · Form submission
-          </p>
-          <h1 style="margin:0 0 10px;font-size:28px;line-height:1.3;color:#111827;">
-            ${escapeHtml(formName)}
-          </h1>
-          <p style="margin:0 0 28px;font-size:15px;line-height:1.5;color:#9ca3af;">
-            Received ${escapeHtml(submittedAt)}
-          </p>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-            ${
-              fieldRows ||
-              `<tr><td style="padding:20px;color:#6b7280;font-size:16px;">No fields submitted.</td></tr>`
-            }
-          </table>
-          ${mediaSections.join("")}
-          <p style="margin:32px 0 0;font-size:13px;line-height:1.5;color:#9ca3af;">
-            Delivered by Quest Base Form-to-Mail
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <title>New submission · ${escapeHtml(formName)}</title>
+</head>
+<body style="margin:0;padding:0;background:#f7f7f7;font-family:${EMAIL_FONT};-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f7f7;">
+    <tr>
+      <td align="center" style="padding:48px 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:720px;width:100%;">
+          <tr>
+            <td style="background:#ffffff;border:1px solid #ececec;border-radius:12px;padding:52px 48px;">
+              ${brandHeader({ logoUrl, subtitle: "Form submission" })}
+
+              <h1 style="margin:0 0 10px;font-family:${EMAIL_FONT};font-size:30px;line-height:1.25;font-weight:600;letter-spacing:-0.03em;color:#0a0a0a;">
+                ${escapeHtml(formName)}
+              </h1>
+              <p style="margin:0 0 40px;font-family:${EMAIL_FONT};font-size:14px;line-height:1.5;color:#737373;">
+                Received ${escapeHtml(submittedAt)}
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${
+                  fieldRows ||
+                  `<tr><td style="padding:0;font-family:${EMAIL_FONT};font-size:15px;color:#737373;">No fields submitted.</td></tr>`
+                }
+              </table>
+
+              ${mediaSections.join("")}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 8px 0;text-align:center;">
+              <p style="margin:0;font-family:${EMAIL_FONT};font-size:13px;line-height:1.5;color:#a3a3a3;">
+                Delivered by Questbase Form-to-Mail
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
   </table>
-</body></html>`;
+</body>
+</html>`;
 }
 
 export function buildProductOtpEmail({ bodyText, code, minutes }) {
