@@ -1,7 +1,6 @@
 import { escapeHtml, humanizeFieldKey } from "../utils/helpers.js";
 
-const EMAIL_FONT =
-  "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+const EMAIL_FONT = "Helvetica, Arial, sans-serif";
 
 function formatFieldValue(value) {
   const raw = Array.isArray(value) ? value.join(", ") : String(value ?? "");
